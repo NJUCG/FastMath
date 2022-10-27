@@ -13,13 +13,16 @@
 // } ieee_double_shape_type;
 
 #include <cmath>
+#include <stdint.h>
+
+//注意：O1及以上优化下，
+//下列所有数学函数中以常量方式传速度开关参数，
+//以及对应ifelse语句不会在汇编中体现，
+//即多包装的一层“传参+选择判断”不会影响效率。
 namespace fm{
 
     const float pi_f = 3.14159265358979323846264338327950288f;
-    //注意：O1及以上优化下，
-    //下列所有数学函数中以常量方式传速度开关参数，
-    //以及对应ifelse语句不会在汇编中体现，
-    //即多包装的一层“传参+选择判断”不会影响效率。
+    const double pi_d = 3.14159265358979323846264338327950288;
 
     #ifndef FM_SPEED_DEFAULT
         #define FM_SPEED_DEFAULT SPEED_NORMAL
