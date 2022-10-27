@@ -1,3 +1,5 @@
+// 用以测试FastMath.h速度的测试框架
+
 // #include<bits/stdc++.h>
 #include <iostream>
 #include <random>
