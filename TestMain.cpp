@@ -3,7 +3,7 @@
 #include <random>
 #include <cstdlib>
 #include <assert.h>
-#include "fastmath.h"
+#include "FastMath.h"
 #include <algorithm>
 #include <vector>
 
@@ -120,18 +120,18 @@ class test_framework_unary{
     }
 };
 float test_framework_unary::data[MAX_DATA_N],test_framework_unary::ans[MAX_DATA_N],test_framework_unary::gen[MAX_DATA_N];
-using fastmath::pi_f;
+using fm::pi_f;
 int main(){
     // float a,b;
     // std::cin>>a>>b;
-    // fastmath::init();
+    // fm::init();
     // exit(0);
 
     #define totst cos
     my_rd_real_eng<float> myeg(-10,10);
     test_framework_unary tp(20,MAX_DATA_N-5,myeg);
-    tp.add_func([](float x)->float{return fastmath::totst(x,fastmath::SPEED_FAST);});
-    tp.add_func([](float x)->float{return fastmath::totst(x,fastmath::SPEED_NORMAL);});
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
     tp.set_err_standard([](float x)->float{return std::totst(x);});
     tp.runtest(1);
     // printf("%.10lf\n",noinlinewp(a)+noinlinewp2(b));

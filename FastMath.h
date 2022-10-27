@@ -25,17 +25,18 @@ namespace fm{
     const double pi_d = 3.14159265358979323846264338327950288;
 
     #ifndef FM_SPEED_DEFAULT
-        #define FM_SPEED_DEFAULT SPEED_NORMAL
+        #define FM_SPEED_DEFAULT ESpeedNormal
     #endif
 
+
     enum speed_option{
-        SPEED_NORMAL=0,
-        SPEED_FAST=1,
+        ESpeedNormal=0,
+        ESpeedFast=1,
     };
     
     // fast O3用时少37%，最大min(绝对误差,相对误差)不超过8e-5
     inline float log2(float x,speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==SPEED_NORMAL){
+        if(speed==ESpeedNormal){
             return std::log2(x);
         }
         else{
@@ -52,197 +53,22 @@ namespace fm{
     }
 
 
-    //经过测试，能够找到的其他实现均不如标准库
+    //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
     inline float sqrt(float x, speed_option speed=FM_SPEED_DEFAULT){
         return std::sqrt(x);
-
-        if(speed==SPEED_NORMAL){
-            return std::sqrt(x);
-        }
-        else{        
-            float xhalf = 0.5f*x;
-            int32_t i = *(int32_t*)&x;
-            i = 0x5f3759df - (i >> 1);        
-            x = *(float*)&i;
-            x = x*(1.5f - xhalf*x*x);      
-            return 1/x;
-
-            union{
-                    int32_t intPart;
-                    float floatPart;
-            } convertor;
-            union{
-                    int32_t intPart;
-                    float floatPart;
-            } convertor2;
-            convertor.floatPart = x;
-            convertor2.floatPart = x;
-            convertor.intPart = 0x1FBCF800 + (convertor.intPart >> 1);
-            convertor2.intPart = 0x5f375a86 - (convertor2.intPart >> 1);
-            return 0.5f*(convertor.floatPart + (x * convertor2.floatPart));
-        }
     }
 
-    //经过测试，能够找到的其他实现均不如标准库
+    //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
     inline double sqrt(double x, speed_option speed=FM_SPEED_DEFAULT){
         return std::sqrt(x);
-
-        if(speed==SPEED_NORMAL){
-            return std::sqrt(x);
-        }
-        else{        
-            double xhalf = 0.5*x;
-            uint64_t i = *(uint64_t*)&x;
-            i = 0x5fe6ec85e7de30da - (i >> 1);        
-            x = *(double*)&i;
-            x = x*(1.5 - xhalf*x*x);      
-            return 1/x;
-
-
-            // #define EXTRACT_WORDS(ix0,ix1,d)				\
-            // do {								\
-            // ieee_double_shape_type ew_u;					\
-            // ew_u.value = (d);						\
-            // (ix0) = ew_u.parts.msw;					\
-            // (ix1) = ew_u.parts.lsw;					\
-            // } while (0)
-            // #define INSERT_WORDS(d,ix0,ix1)					\
-            // do {								\
-            // ieee_double_shape_type iw_u;					\
-            // iw_u.parts.msw = (ix0);					\
-            // iw_u.parts.lsw = (ix1);					\
-            // (d) = iw_u.value;						\
-            // } while (0)
-
-
-            // double z;
-            // __int32_t sign = 0x80000000; 
-            // __uint32_t r,t1,s1,ix1,q1;
-            // __int32_t ix0,s0,q,m,t,i;
-
-            // EXTRACT_WORDS(ix0,ix1,x);
-
-            // /* take care of Inf and NaN */
-            // if((ix0&0x7ff00000)==0x7ff00000) {			
-            //     return x*x+x;		/* sqrt(NaN)=NaN, sqrt(+inf)=+inf
-            //                 sqrt(-inf)=sNaN */
-            // } 
-            // /* take care of zero */
-            // if(ix0<=0) {
-            //     if(((ix0&(~sign))|ix1)==0) return x;/* sqrt(+-0) = +-0 */
-            //     else if(ix0<0)
-            //     return (x-x)/(x-x);		/* sqrt(-ve) = sNaN */
-            // }
-            // /* normalize x */
-            // m = (ix0>>20);
-            // if(m==0) {				/* subnormal x */
-            //     while(ix0==0) {
-            //     m -= 21;
-            //     ix0 |= (ix1>>11); ix1 <<= 21;
-            //     }
-            //     for(i=0;(ix0&0x00100000)==0;i++) ix0<<=1;
-            //     m -= i-1;
-            //     ix0 |= (ix1>>(32-i));
-            //     ix1 <<= i;
-            // }
-            // m -= 1023;	/* unbias exponent */
-            // ix0 = (ix0&0x000fffff)|0x00100000;
-            // if(m&1){	/* odd m, double x to make it even */
-            //     ix0 += ix0 + ((ix1&sign)>>31);
-            //     ix1 += ix1;
-            // }
-            // m >>= 1;	/* m = [m/2] */
-
-            // /* generate sqrt(x) bit by bit */
-            // ix0 += ix0 + ((ix1&sign)>>31);
-            // ix1 += ix1;
-            // q = q1 = s0 = s1 = 0;	/* [q,q1] = sqrt(x) */
-            // r = 0x00200000;		/* r = moving bit from right to left */
-
-            // while(r!=0) {
-            //     t = s0+r; 
-            //     if(t<=ix0) { 
-            //     s0   = t+r; 
-            //     ix0 -= t; 
-            //     q   += r; 
-            //     } 
-            //     ix0 += ix0 + ((ix1&sign)>>31);
-            //     ix1 += ix1;
-            //     r>>=1;
-            // }
-
-            // r = sign;
-            // while(r!=0) {
-            //     t1 = s1+r; 
-            //     t  = s0;
-            //     if((t<ix0)||((t==ix0)&&(t1<=ix1))) { 
-            //     s1  = t1+r;
-            //     if(((t1&sign)==sign)&&(s1&sign)==0) s0 += 1;
-            //     ix0 -= t;
-            //     if (ix1 < t1) ix0 -= 1;
-            //     ix1 -= t1;
-            //     q1  += r;
-            //     }
-            //     ix0 += ix0 + ((ix1&sign)>>31);
-            //     ix1 += ix1;
-            //     r>>=1;
-            // }
-
-            // /* use floating add to find out rounding direction */
-            // if((ix0|ix1)!=0) {
-            //     z = one-tiny; /* trigger inexact flag */
-            //     if (z>=one) {
-            //         z = one+tiny;
-            //         if (q1==(__uint32_t)0xffffffff) { q1=0; q += 1;}
-            //     else if (z>one) {
-            //         if (q1==(__uint32_t)0xfffffffe) q+=1;
-            //         q1+=2; 
-            //     } else
-            //             q1 += (q1&1);
-            //     }
-            // }
-            // ix0 = (q>>1)+0x3fe00000;
-            // ix1 =  q1>>1;
-            // if ((q&1)==1) ix1 |= sign;
-            // ix0 += (m <<20);
-            // INSERT_WORDS(z,ix0,ix1);
-            // return z;
-        }
     }
 
-    //经过测试，能够找到的其他实现均不如标准库
+    //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
     inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
         return std::exp2(x);
-        
-        if(speed==SPEED_NORMAL){
-            return std::exp2(x);
-        }
-        else{        
-            #define _BIT(n) (1<<(n))
-            union {uint32_t i; float f;} v;
-            float offset = (x<0)? 1.0f : 0.0f;
-            float clipp = (x<-126) ? -126.0f : x;
-            int32_t w = clipp;
-            float z = clipp - w + offset;
-            v.i = (uint32_t)(_BIT(23) * (clipp + 121.2740575f + 27.7280233f / 
-                (4.84252568f - z) - 1.49012907f * z));
-            return v.f;
-            #undef _BIT
-        }
     }
 
     const int32_t bk=1024;
-    // float sin_lut[bk+1];
-    // void init(){
-    //     for(int32_t i=0;i<=bk;++i){
-    //         float y=i*(pi_f*2)/bk;
-    //         sin_lut[i]=std::sin(y);
-    //     }
-    //     for(int32_t i=0;i<=bk;++i){
-    //         std::cout<<sin_lut[i]<<",";
-    //         if(i%100==9) puts(""); 
-    //     }
-    // }
     const float sin_lut[bk+2]={
 0,0.00613588,0.0122715,0.0184067,0.0245412,0.0306748,0.0368072,0.0429383,0.0490677,0.0551952,
 0.0613207,0.0674439,0.0735646,0.0796824,0.0857973,0.091909,0.0980171,0.104122,0.110222,0.116319,0.122411,0.128498,0.134581,0.140658,0.14673,0.152797,0.158858,0.164913,0.170962,0.177004,0.18304,0.189069,0.19509,0.201105,0.207111,0.21311,0.219101,0.225084,0.231058,0.237024,0.24298,0.248928,0.254866,0.260794,0.266713,0.272621,0.27852,0.284408,0.290285,0.296151,0.302006,0.30785,0.313682,0.319502,0.32531,0.331106,0.33689,0.342661,0.348419,0.354164,0.359895,0.365613,0.371317,0.377007,0.382683,0.388345,0.393992,0.399624,0.405241,0.410843,0.41643,0.422,0.427555,0.433094,0.438616,0.444122,0.449611,0.455084,0.460539,0.465977,0.471397,0.476799,0.482184,0.48755,0.492898,0.498228,0.503538,0.50883,0.514103,0.519356,0.52459,0.529804,0.534998,0.540172,0.545325,0.550458,0.55557,0.560662,0.565732,0.570781,0.575808,0.580814,0.585798,0.59076,0.595699,0.600617,0.605511,0.610383,0.615232,0.620057,
@@ -262,7 +88,7 @@ namespace fm{
     inline float sin(float x, speed_option speed=FM_SPEED_DEFAULT){
         // return std::exp2(x);
         
-        if(speed==SPEED_NORMAL){
+        if(speed==ESpeedNormal){
             return std::sin(x);
         }
         else{        
@@ -272,15 +98,6 @@ namespace fm{
             x -= id;
             id = ((id & 1023) + 1024) & 1023;
             return x*sin_lut[id]+(1-x)*sin_lut[id+1];
-            // x = std::fmod(x+pi_f,pi_f*2);
-            // if(x<0) x+=pi_f;
-            // else x-=pi_f;
-            // if (x < 0){
-            //     return 1.27323954f * x+ 0.405284735f * x* x;
-            // }
-            // else{
-            //     return 1.27323954f * x- 0.405284735f * x* x;
-            // }
 
         }       
     }
