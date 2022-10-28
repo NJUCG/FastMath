@@ -107,6 +107,22 @@ namespace fm{
     }
 
 
+    using std::tan; 
+    using std::acos; 
+    using std::asin; 
+    using std::atan; 
+    using std::atan2; 
+    using std::sqrt; 
+    using std::ceil; 
+    using std::floor; 
+    using std::fmod; 
+    using std::round; 
+    using std::exp; 
+    using std::log; 
+    using std::pow; 
+    using std::abs; 
+    using std::max; 
+    using std::min;
 
 
 

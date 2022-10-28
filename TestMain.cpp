@@ -129,7 +129,7 @@ int main(){
     // fm::init();
     // exit(0);
 
-    #define totst cos
+    #define totst tan 
     my_rd_real_eng<float> myeg(-10,10);
     test_framework_unary tp(20,MAX_DATA_N-5,myeg);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});
