@@ -21,8 +21,12 @@ namespace fm{
         } parts;
     } ieee_double_shape_type;
 
-    const float pi_f = 3.14159265358979323846264338327950288f;
-    const double pi_d = 3.14159265358979323846264338327950288;
+    const float  hpi_f = 1.5707963267948966192313f;
+    const double hpi_d = 1.5707963267948966192313;
+    const float  pi_f  = 3.1415926535897932384626f;
+    const double pi_d  = 3.1415926535897932384626;
+    const float  tpi_f = 6.2831853071795864769252f;
+    const float  tpi_d = 6.2831853071795864769252;
 
     #ifndef FM_SPEED_DEFAULT
         #define FM_SPEED_DEFAULT ESpeedNormal

@@ -50,7 +50,7 @@ class test_framework_unary{
         // if(fabs(ans[i])>1e-2)
         {
             rt=std::max(rt,std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i]))));
-            // if(rt>4){
+            // if(std::isinf(rt)){
             //     printf("%.10lf %.10lf %.10lf\n",data[i],gen[i],ans[i]);
             //     assert(0);
             // }
@@ -129,7 +129,7 @@ int main(){
     // fm::init();
     // exit(0);
 
-    #define totst tan 
+    #define totst sin 
     my_rd_real_eng<float> myeg(-10,10);
     test_framework_unary tp(20,MAX_DATA_N-5,myeg);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});

@@ -21,8 +21,14 @@
 //即多包装的一层“传参+选择判断”不会影响效率。
 namespace fm{
 
-    const float pi_f = 3.14159265358979323846264338327950288f;
-    const double pi_d = 3.14159265358979323846264338327950288;
+    // 目的是防止*2 /2 导致的精度误差
+    const float  hpi_f = 1.5707963267948966192313f;
+    const double hpi_d = 1.5707963267948966192313;
+    const float  pi_f  = 3.1415926535897932384626f;
+    const double pi_d  = 3.1415926535897932384626;
+    const float  tpi_f = 6.2831853071795864769252f;
+    const float  tpi_d = 6.2831853071795864769252;
+
 
     #ifndef FM_SPEED_DEFAULT
         #define FM_SPEED_DEFAULT ESpeedNormal
@@ -34,6 +40,13 @@ namespace fm{
         ESpeedFast=1,
     };
     
+
+    //这个确实没法优化
+    template <typename T>
+    inline T abs(T x,speed_option speed=FM_SPEED_DEFAULT){
+        return std::abs(x);
+    }
+
     // fast O3用时少37%，最大min(绝对误差,相对误差)不超过8e-5
     inline float log2(float x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedNormal){
@@ -84,30 +97,52 @@ namespace fm{
 -0.0857969,-0.0796825,-0.0735646,-0.0674439,-0.0613207,-0.0551952,-0.0490676,-0.0429382,-0.0368072,-0.0306747,-0.0245411,-0.0184066,-0.0122714,-0.00613573,1.74846e-07        
     };
 
-    //fast O3用时少82%，最大min(绝对误差,相对误差)不超过6e-3
+    //fast O3用时少75%，最大min(绝对误差,相对误差)不超过6e-6
     inline float sin(float x, speed_option speed=FM_SPEED_DEFAULT){
         // return std::exp2(x);
         
         if(speed==ESpeedNormal){
             return std::sin(x);
         }
-        else{        
-            x = x * (bk/(2.0f*pi_f));
+        else{       
+
+            //fmod比sin慢10倍多，不可能使用，好在一般sin不会有奇怪过大输入
+            if(abs(x)>(1e9f/bk)) {
+                // x=std::fmod(x,tpi_f);
+                return std::sin(x);
+            }
+
+            //查表法
+            x = x * (bk/(tpi_f));
             int32_t id = (int32_t)x;
             if(x<0) id--;
             x -= id;
             id = ((id & 1023) + 1024) & 1023;
-            return x*sin_lut[id]+(1-x)*sin_lut[id+1];
+            return (1-x)*sin_lut[id]+x*sin_lut[id+1];
 
         }       
     }
 
+    //fast O3用时少75%，最大min(绝对误差,相对误差)不超过6e-6
     inline float cos(float x, speed_option speed=FM_SPEED_DEFAULT){
-        return sin(x+pi_f/2,speed);
+        if(speed==ESpeedNormal){
+            return std::cos(x);
+        }
+        else{ 
+            return sin(x+hpi_f,speed);
+        }
     }
 
+    //fast O3用时少65%，最大min(绝对误差,相对误差)不超过2e-5(除奇异点附近的极端值外)
+    inline float tan(float x, speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedNormal){
+            return std::tan(x);
+        }
+        else{ 
+            return sin(x,speed)/sin(x+hpi_f,speed);
+        }
+    }
 
-    using std::tan; 
     using std::acos; 
     using std::asin; 
     using std::atan; 
@@ -120,7 +155,6 @@ namespace fm{
     using std::exp; 
     using std::log; 
     using std::pow; 
-    using std::abs; 
     using std::max; 
     using std::min;
 
