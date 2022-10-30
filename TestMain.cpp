@@ -1,11 +1,16 @@
 // 用以测试FastMath.h速度的测试框架
 
+
+#include "assert.h"
+
+#include "FastMath.h"
+// #include "DiscardedImpl.h"
+
 // #include<bits/stdc++.h>
 #include <iostream>
 #include <random>
 #include <cstdlib>
 #include <assert.h>
-#include "FastMath.h"
 #include <algorithm>
 #include <vector>
 
@@ -50,7 +55,7 @@ class test_framework_unary{
         // if(fabs(ans[i])>1e-2)
         {
             rt=std::max(rt,std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i]))));
-            // if(std::isinf(rt)){
+            // if(rt>0.01){
             //     printf("%.10lf %.10lf %.10lf\n",data[i],gen[i],ans[i]);
             //     assert(0);
             // }
@@ -129,11 +134,11 @@ int main(){
     // fm::init();
     // exit(0);
 
-    #define totst sin 
-    my_rd_real_eng<float> myeg(-10,10);
+    #define totst acos
+    my_rd_real_eng<float> myeg(-0.99,0.99);
     test_framework_unary tp(20,MAX_DATA_N-5,myeg);
-    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});    
     tp.set_err_standard([](float x)->float{return std::totst(x);});
     tp.runtest(1);
     // printf("%.10lf\n",noinlinewp(a)+noinlinewp2(b));
