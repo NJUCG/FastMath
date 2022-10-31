@@ -118,6 +118,7 @@ class test_framework_unary{
         printf("[TOTAL] Time: ");
         for(int i=1;i<=funcN;++i)
             printf("%10.6lf",tm[i]);
+        printf(" {%.6lf %.6lf}",tm[1]/tm[2],1-tm[2]/tm[1]);
         if(need_err){
             printf("  Err:  ");
             for(int i=1;i<=funcN;++i)
@@ -133,9 +134,8 @@ int main(){
     // std::cin>>a>>b;
     // fm::init();
     // exit(0);
-
-    #define totst acos
-    my_rd_real_eng<float> myeg(-0.99,0.99);
+    #define totst atan
+    my_rd_real_eng<float> myeg(-10,10);
     test_framework_unary tp(20,MAX_DATA_N-5,myeg);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});    

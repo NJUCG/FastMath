@@ -255,5 +255,23 @@ namespace fm{
         }       
     }
 
+    inline float atan(float x, speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedNormal){
+            return std::atan(x);
+        }
+        else{ 
+            //这个公式速度与Fast2ArcTan一致，但是精度更差
+            if(abs(x)<=1){
+                return (pi_f/4.0f)*x - x*(abs(x) - 1)*(0.2447f + 0.0663f*abs(x));
+                // return Fast2ArcTan(x);
+            }
+            else{
+                x=1/x;
+                float t=/*Fast2ArcTan(x);*/(pi_f/4.0f)*x - x*(abs(x) - 1)*(0.2447f + 0.0663f*abs(x));
+                return ((x>0)-0.5f)*pi_f - t;
+            }
+        }
+    }
+
 
 }//namespace fm
