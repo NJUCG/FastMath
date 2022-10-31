@@ -13,6 +13,7 @@
 // } ieee_double_shape_type;
 
 #include <cmath>
+#include <cstdlib>
 #include <stdint.h>
 
 //注意：O1及以上优化下，
@@ -238,7 +239,14 @@ namespace fm{
         }
     }
     
-    
+    inline float atan2(float y,float x, speed_option speed=FM_SPEED_DEFAULT){
+        // if(speed==ESpeedNormal){
+            return std::atan2(y,x);
+        // }
+        // else{ 
+        //     return //atan(y/x,speed);
+        // }
+    }
     using std::atan2; 
     using std::fmod; 
     using std::exp; 
