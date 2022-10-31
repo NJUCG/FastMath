@@ -263,6 +263,9 @@ int main(){
     // tp.set_err_standard([](float x)->float{return std::totst(x);});
     // tp.runtest(1);
 
+    // printf("%.6lf %.6lf %.6lf %.6lf\n",
+        // fm::atan2(1,0),fm::atan2(-1,0),fm::atan2(0,1),fm::atan2(0,-1));
+
     // binary
     my_rd_real_eng<float> myeg(-10,10);
     test_framework_binary<float> tp2(myeg,myeg,20,MAX_DATA_N_B-5);

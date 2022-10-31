@@ -219,7 +219,7 @@ namespace fm{
 
     inline float _Fast2ArcTan(const float x) {
         float xx = x * x;
-        return ((0.0776509570923569f*xx -0.287434475393028f)*xx + (pi_f/4.0f -0.0776509570923569f +0.287434475393028))*x;
+        return ((0.0776509570923569f*xx -0.287434475393028f)*xx + ((pi_f/4.0f) -0.0776509570923569f +0.287434475393028))*x;
     }
 
     //fast O3用时少20%，最大min(绝对误差,相对误差)不超过1e-3
@@ -239,15 +239,21 @@ namespace fm{
         }
     }
     
+    //fast O3用时少48%，最大min(绝对误差,相对误差)不超过2e-4
     inline float atan2(float y,float x, speed_option speed=FM_SPEED_DEFAULT){
-        // if(speed==ESpeedNormal){
+        if(speed==ESpeedNormal){
             return std::atan2(y,x);
-        // }
-        // else{ 
-        //     return //atan(y/x,speed);
-        // }
+        }
+        else{ 
+            float a = std::min (abs(x), abs(y)) / std::max (abs(x), abs(y));
+            float s = a * a;
+            float r = ((-0.0464964749f * s + 0.15931422f) * s - 0.327622764f) * s * a + a;
+            if (abs(y) > abs(x)) r = hpi_f - r;
+            if (x < 0) r = pi_f - r;
+            if (y < 0) r = -r;
+            return r;
+        }
     }
-    using std::atan2; 
     using std::fmod; 
     using std::exp; 
     using std::log; 
