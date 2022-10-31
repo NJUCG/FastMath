@@ -93,18 +93,25 @@ namespace fm{
 
 
     //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
-    inline float sqrt(float x, speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T>
+    inline T sqrt(T x, speed_option speed=FM_SPEED_DEFAULT){
         return std::sqrt(x);
     }
 
     //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
-    inline double sqrt(double x, speed_option speed=FM_SPEED_DEFAULT){
-        return std::sqrt(x);
-    }
-
-    //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
-    inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T>
+    inline T exp2(T x, speed_option speed=FM_SPEED_DEFAULT){
         return std::exp2(x);
+    }
+
+    //TODO
+    inline float exp(float x, speed_option speed=FM_SPEED_DEFAULT){
+        return std::exp(x);
+    }    
+
+    //TODO
+    inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
+        return std::log(x);
     }
 
     const int32_t _bk=1024;
@@ -254,12 +261,30 @@ namespace fm{
             return r;
         }
     }
-    using std::fmod; 
-    using std::exp; 
-    using std::log; 
-    using std::pow; 
-    using std::max; 
-    using std::min;
+
+    //fast O3用时少91%（10+倍速），随机检测的超1e8个测试case均0误差
+    //但是再极端情况下（fmod(x,y)极为接近0时，有可能因为精度而得到相差除数y的结果）
+    //另外与标准库相比没有做inf，nan的适配
+    template <typename T>
+    inline T fmod(T x,T y, speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedNormal){
+            return std::fmod(x,y);
+        }
+        else{ 
+            T t=(T)((double)x - std::trunc((double)x/y)*(double)y);
+            return t;
+        }
+    }
+
+    //TODO
+    inline float pow(float x,float y, speed_option speed=FM_SPEED_DEFAULT){
+        return std::pow(x,y);
+    }
+
+
+    // 废弃，因为max,min是algrothm中而非cmath中的内容，也没法优化。
+    // using std::max; 
+    // using std::min;
 
 
 

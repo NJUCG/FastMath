@@ -162,11 +162,12 @@ class test_framework_binary{
         // if(fabs(data[i]-1)>10)
         // if(fabs(ans[i])>1e-2)
         {
-            rt=std::max(rt,std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i]))));
-            // if(rt>0.01){
-            //     printf("%.10lf %.10lf %.10lf\n",data1[i],data2[i],gen[i],ans[i]);
-            //     assert(0);
-            // }
+            double cur_err =std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i])));
+            rt=std::max(rt,cur_err);
+            if(cur_err>10){
+                // printf("%.10lf %.10lf %.10lf %.10lf\n",data1[i],data2[i],gen[i],ans[i]);
+                // assert(0);
+            }
         }
         return rt;
     }
@@ -253,7 +254,7 @@ int main(){
     // std::cin>>a>>b;
     // fm::init();
     // exit(0);
-    #define totst atan2
+    #define totst pow
 
     // unary
     // my_rd_real_eng<float> myeg(-10,10);
@@ -267,12 +268,11 @@ int main(){
         // fm::atan2(1,0),fm::atan2(-1,0),fm::atan2(0,1),fm::atan2(0,-1));
 
     // binary
-    my_rd_real_eng<float> myeg(-10,10);
-    test_framework_binary<float> tp2(myeg,myeg,20,MAX_DATA_N_B-5);
+    my_rd_real_eng<float> myeg1(-1e2,1e2),myeg2(1e-1,20);
+    test_framework_binary<float> tp2(myeg1,myeg2,20,MAX_DATA_N_B-5);
     tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedNormal);});
     tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedFast);});    
     tp2.set_err_standard([](float x,float y)->float{return std::totst(x,y);});
     tp2.runtest(1);
-
     // printf("%.10lf\n",noinlinewp(a)+noinlinewp2(b));
 }
