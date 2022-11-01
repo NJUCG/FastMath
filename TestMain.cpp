@@ -55,10 +55,24 @@ class test_framework_unary{
         // if(fabs(data[i]-1)>10)
         // if(fabs(ans[i])>1e-2)
         {
-            rt=std::max(rt,std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i]))));
-            // if(rt>0.01){
-            //     printf("%.10lf %.10lf %.10lf\n",data[i],gen[i],ans[i]);
-            //     assert(0);
+            double cur_err =std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i])));
+            // printf("%.10f\n",cur_err);
+            rt=std::max(rt,cur_err);
+            // if(cur_err>0.0005){
+            //     static int ct=0;
+            //     static float mi=30,pj=0;
+            //     mi=std::min(mi,(float)data[i]);
+            //     ct++;
+            //     pj+=cur_err/(data[i]*data[i]);
+            //     if(ct==100000){
+            //         printf("para:  %.10lf %.10lf\n",mi,pj/ct);
+            //     }
+            //     static int a=0;
+            //     a++;
+            //     if(a<=10){
+            //     printf("[%.10lf]%.10lf %.10lf\n",cur_err,data[i],cur_err/(data[i]*data[i]));
+            //     }
+            //     // assert(0);
             // }
         }
         return rt;
@@ -162,8 +176,10 @@ class test_framework_binary{
         // if(fabs(data[i]-1)>10)
         // if(fabs(ans[i])>1e-2)
         {
+            // printf("%.10lf \n",(double)(ans[i]-gen[i])/ans[i]);
             double cur_err =std::min(fabs((double)(ans[i]-gen[i])/ans[i]),fabs((double)(ans[i]-gen[i])));
             rt=std::max(rt,cur_err);
+            // rt+=cur_err/n;
             if(cur_err>10){
                 // printf("%.10lf %.10lf %.10lf %.10lf\n",data1[i],data2[i],gen[i],ans[i]);
                 // assert(0);
@@ -254,25 +270,27 @@ int main(){
     // std::cin>>a>>b;
     // fm::init();
     // exit(0);
-    #define totst pow
+    #define totst exp
 
     // unary
-    // my_rd_real_eng<float> myeg(-10,10);
-    // test_framework_unary<float> tp(myeg,20,MAX_DATA_N-5);
-    // tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
-    // tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});    
-    // tp.set_err_standard([](float x)->float{return std::totst(x);});
-    // tp.runtest(1);
+    my_rd_real_eng<float> myeg(-20,20);
+    test_framework_unary<float> tp(myeg,20,MAX_DATA_N-5);
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedVeryFast);});    
+    tp.set_err_standard([](float x)->float{return std::totst(x);});
+    tp.runtest(1);
 
     // printf("%.6lf %.6lf %.6lf %.6lf\n",
         // fm::atan2(1,0),fm::atan2(-1,0),fm::atan2(0,1),fm::atan2(0,-1));
 
     // binary
-    my_rd_real_eng<float> myeg1(-1e2,1e2),myeg2(1e-1,20);
-    test_framework_binary<float> tp2(myeg1,myeg2,20,MAX_DATA_N_B-5);
-    tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedNormal);});
-    tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedFast);});    
-    tp2.set_err_standard([](float x,float y)->float{return std::totst(x,y);});
-    tp2.runtest(1);
+    // #define float double
+    // my_rd_real_eng<float> myeg1(5,10),myeg2(1,10);
+    // test_framework_binary<float> tp2(myeg1,myeg2,20,MAX_DATA_N_B-5);
+    // tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedNormal);});
+    // tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedFast);});    
+    // tp2.set_err_standard([](float x,float y)->float{return std::totst(x,y);});
+    // tp2.runtest(1);
+
     // printf("%.10lf\n",noinlinewp(a)+noinlinewp2(b));
 }

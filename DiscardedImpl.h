@@ -34,10 +34,11 @@ namespace fm{
     #endif
 
     enum speed_option{
-        ESpeedNormal=0,
-        ESpeedFast=1,
+        ESpeedStd=0, //直接调用std
+        ESpeedNormal=1, //保证float最后一位级别精度
+        ESpeedFast=2, //保证最大min(绝对误差,相对误差)不超过1e-4，不保证nan,inf的特殊处理
+        ESpeedVeryFast=3, //保证最大min(绝对误差,相对误差)不超过1e-2
     };
-    
 
     inline float sqrt(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedNormal){
@@ -272,6 +273,45 @@ namespace fm{
             }
         }
     }
+
+    inline double pow(double a,double b, speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedNormal){
+            return std::pow(a,b);
+        }
+        else{ 
+
+            //快是很快，但精度可以差到50%误差，不可用
+            if(a<=0) return std::pow(a,b);
+            union {
+                double d;
+                int32_t x[2];
+            } u = { a };
+            u.x[1] = (int32_t)((b) * (u.x[1] - 1072632447) + 1072632447);
+            u.x[0] = 0;
+            return  u.d;
+
+
+            //比标准库更慢，精度也仅2e-2
+            // int e = (int) b;
+            // union {
+            //     double d;
+            //     int x[2];
+            // } u = { a };
+            // u.x[1] = (int)((b - e) * (u.x[1] - 1072632447) + 1072632447);
+            // u.x[0] = 0;
+
+            // double r = 1.0;
+            // while (e) {
+            //     if (e & 1) {
+            //     r *= a;
+            //     }
+            //     a *= a;
+            //     e >>= 1;
+            // }
+
+            // return r * u.d;            
+        }    
+    }   
 
 
 }//namespace fm

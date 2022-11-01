@@ -36,10 +36,12 @@ namespace fm{
     #endif
 
 
+    //待调整TODO
     enum speed_option{
-        ESpeedNormal=0,
-        ESpeedFast=1,
-        // ESpeedVeryFast=2,
+        ESpeedStd=0, //直接调用std
+        ESpeedNormal=1, //保证float最后一位级别精度
+        ESpeedFast=2, //保证最大min(绝对误差,相对误差)不超过【待定TODO】，不保证nan,inf的特殊处理
+        ESpeedVeryFast=3, //保证最大min(绝对误差,相对误差)不超过【待定TODO】
     };
     
 
@@ -104,9 +106,30 @@ namespace fm{
         return std::exp2(x);
     }
 
-    //TODO
+    //fast O3用时少8%，最大min(绝对误差,相对误差)不超过2e-3
+    //veryfast O3用时少55%，最大min(绝对误差,相对误差)不超过4e-2
     inline float exp(float x, speed_option speed=FM_SPEED_DEFAULT){
-        return std::exp(x);
+        if(speed==ESpeedNormal){
+            return std::exp(x);
+        }
+        else if(speed==ESpeedFast){          
+            float t = 1.0f + x/4096;
+            t *= t;  t *= t; t *= t; t *= t;
+            t *= t;  t *= t; t *= t; t *= t;
+            t *= t;  t *= t; t *= t; t *= t;
+            t = t * (1+ 0.0001271152f * x * x);
+            
+            return t;
+        }
+        else{
+            union
+            {
+            uint32_t i;
+            float f;
+            }v;
+            v.i=(1<<23)*(1.4426950409*x+126.94201519f);
+            return v.f;        
+        }
     }    
 
     //TODO
@@ -276,11 +299,11 @@ namespace fm{
         }
     }
 
-    //TODO
-    inline float pow(float x,float y, speed_option speed=FM_SPEED_DEFAULT){
+    //经过测试，能够找到的快于标准库的实现精度太差（这些实现可见于DiscardedImpl.h）
+    template <typename T>
+    inline T pow(float x,float y, speed_option speed=FM_SPEED_DEFAULT){
         return std::pow(x,y);
     }
-
 
     // 废弃，因为max,min是algrothm中而非cmath中的内容，也没法优化。
     // using std::max; 
