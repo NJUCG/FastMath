@@ -100,12 +100,6 @@ namespace fm{
         return std::sqrt(x);
     }
 
-    //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
-    template <typename T>
-    inline T exp2(T x, speed_option speed=FM_SPEED_DEFAULT){
-        return std::exp2(x);
-    }
-
     //fast O3用时少8%，最大min(绝对误差,相对误差)不超过2e-3
     //veryfast O3用时少55%，最大min(绝对误差,相对误差)不超过4e-2
     inline float exp(float x, speed_option speed=FM_SPEED_DEFAULT){
@@ -132,9 +126,25 @@ namespace fm{
         }
     }    
 
-    //TODO
+    //fast O3用时少3%，最大min(绝对误差,相对误差)不超过2e-3
+    //veryfast O3用时少46%，最大min(绝对误差,相对误差)不超过4e-2
+    inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedNormal){        
+            return std::exp2(x);
+        }
+        else{
+            return exp(x*0.6931471805599453f,speed);//ln2
+        }
+    }
+
+    // fast O3用时少45%，最大min(绝对误差,相对误差)不超过6e-5
     inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
-        return std::log(x);
+        if(speed==ESpeedNormal){
+            return std::log(x);
+        }
+        else{
+            return log2(x,speed)*0.6931471805599453f; //ln2
+        }    
     }
 
     const int32_t _bk=1024;

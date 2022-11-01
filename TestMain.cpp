@@ -270,13 +270,13 @@ int main(){
     // std::cin>>a>>b;
     // fm::init();
     // exit(0);
-    #define totst exp
+    #define totst exp2
 
     // unary
-    my_rd_real_eng<float> myeg(-20,20);
+    my_rd_real_eng<float> myeg(-10,20);
     test_framework_unary<float> tp(myeg,20,MAX_DATA_N-5);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
-    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedVeryFast);});    
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});    
     tp.set_err_standard([](float x)->float{return std::totst(x);});
     tp.runtest(1);
 
