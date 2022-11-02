@@ -1,17 +1,5 @@
 #pragma once
 
-
-// const double	one	= 1.0, tiny=1.0e-300;
-// typedef union 
-// {
-//   double value;
-//   struct 
-//   {
-//     __uint32_t lsw;
-//     __uint32_t msw;
-//   } parts;
-// } ieee_double_shape_type;
-
 #include <cmath>
 #include <cstdlib>
 #include <stdint.h>
