@@ -15,7 +15,11 @@
 #include <cmath>
 #include <cstdlib>
 #include <stdint.h>
+#include <limits>
 
+
+//所有优化时间幅度都是指O3下相对ESpeedStd的数据，一般来说O1，O2幅度会更大
+//误差一般指 max{所有输入}(min(相对误差，绝对误差))
 //注意：O1及以上优化下，
 //下列所有数学函数中以常量方式传速度开关参数，
 //以及对应ifelse语句不会在汇编中体现，
@@ -36,12 +40,12 @@ namespace fm{
     #endif
 
 
-    //待调整TODO
     enum speed_option{
         ESpeedStd=0, //直接调用std
         ESpeedNormal=1, //保证float最后一位级别精度
-        ESpeedFast=2, //保证最大min(绝对误差,相对误差)不超过【待定TODO】，不保证nan,inf的特殊处理
-        ESpeedVeryFast=3, //保证最大min(绝对误差,相对误差)不超过【待定TODO】
+        ESpeedFast1=2, //保证所有输入min(绝对误差,相对误差)不超过1e-4，不保证nan,inf的特殊处理
+        ESpeedFast2=3, //保证所有输入min(绝对误差,相对误差)不超过2e-3，不保证nan,inf的特殊处理        
+        ESpeedFast3=4, //保证所有输入min(绝对误差,相对误差)不超过4e-2，不保证nan,inf的特殊处理
     };
     
 
@@ -75,13 +79,12 @@ namespace fm{
         return std::round(x);
     }    
 
-    // fast O3用时少37%，最大min(绝对误差,相对误差)不超过8e-5
+    // fast1/fast2/fast3 用时少37%，误差不超过8e-5
     inline float log2(float x,speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log2(x);
         }
-        else{
-            // if(fabs(x-1)<0.1) return std::log2(x);
+        else{//ESpeedFast1 ESpeedFast2 ESpeedFast3
             union {float f; uint32_t i;} vx;
             union {uint32_t i; float f;} mx;
             vx.f = x;
@@ -100,13 +103,13 @@ namespace fm{
         return std::sqrt(x);
     }
 
-    //fast O3用时少8%，最大min(绝对误差,相对误差)不超过2e-3
-    //veryfast O3用时少55%，最大min(绝对误差,相对误差)不超过4e-2
+    // fast2 用时少8%，误差不超过2e-3
+    // fast3 用时少55%，误差不超过4e-2
     inline float exp(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::exp(x);
         }
-        else if(speed==ESpeedFast){          
+        else if(speed==ESpeedFast2){          
             float t = 1.0f + x/4096;
             t *= t;  t *= t; t *= t; t *= t;
             t *= t;  t *= t; t *= t; t *= t;
@@ -115,7 +118,7 @@ namespace fm{
             
             return t;
         }
-        else{
+        else{//ESpeedFast3
             union
             {
             uint32_t i;
@@ -126,23 +129,23 @@ namespace fm{
         }
     }    
 
-    //fast O3用时少3%，最大min(绝对误差,相对误差)不超过2e-3
-    //veryfast O3用时少46%，最大min(绝对误差,相对误差)不超过4e-2
+    // fast2 用时少3%，误差不超过2e-3
+    // fast3 用时少46%，误差不超过4e-2
     inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){        
+        if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){        
             return std::exp2(x);
         }
-        else{
+        else{//ESpeedFast2 ESpeedFast3
             return exp(x*0.6931471805599453f,speed);//ln2
         }
     }
 
-    // fast O3用时少45%，最大min(绝对误差,相对误差)不超过6e-5
+    // fast1/fast2/fast3 用时少45%，误差不超过6e-5
     inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log(x);
         }
-        else{
+        else{//ESpeedFast1 ESpeedFast2 ESpeedFast3
             return log2(x,speed)*0.6931471805599453f; //ln2
         }    
     }
@@ -163,14 +166,12 @@ namespace fm{
 -0.0857969,-0.0796825,-0.0735646,-0.0674439,-0.0613207,-0.0551952,-0.0490676,-0.0429382,-0.0368072,-0.0306747,-0.0245411,-0.0184066,-0.0122714,-0.00613573,1.74846e-07,0        
     };
 
-    //fast O3用时少75%，最大min(绝对误差,相对误差)不超过6e-6
-    inline float sin(float x, speed_option speed=FM_SPEED_DEFAULT){
-        // return std::exp2(x);
-        
-        if(speed==ESpeedNormal){
+    // fast1/fast2/fast3 用时少75%，误差不超过6e-6
+    inline float sin(float x, speed_option speed=FM_SPEED_DEFAULT){        
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::sin(x);
         }
-        else{       
+        else{//ESpeedFast1 ESpeedFast2 ESpeedFast3       
 
             //fmod比sin慢10倍多，不可能使用，好在一般sin不会有奇怪过大输入
             if(abs(x)>(1e9f/_bk)) {
@@ -189,22 +190,22 @@ namespace fm{
         }       
     }
 
-    //fast O3用时少75%，最大min(绝对误差,相对误差)不超过6e-6
+    // fast1/fast2/fast3  用时少75%，误差不超过6e-6
     inline float cos(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::cos(x);
         }
-        else{ 
+        else{ //ESpeedFast1 ESpeedFast2 ESpeedFast3
             return sin(x+hpi_f,speed);
         }
     }
 
-    //fast O3用时少65%，最大min(绝对误差,相对误差)不超过2e-5(除奇异点附近的极端值外)
+    // fast1/fast2/fast3 用时少65%，误差不超过2e-5(除奇异点附近的极端值外)
     inline float tan(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::tan(x);
         }
-        else{ 
+        else{  //ESpeedFast1 ESpeedFast2 ESpeedFast3
             return sin(x,speed)/sin(x+hpi_f,speed);
         }
     }
@@ -224,12 +225,24 @@ namespace fm{
 1.33641,1.34497,1.35386,1.36313,1.37283,1.38302,1.39379,1.40525,1.41755,1.43093,1.44571,1.46249,1.48238,1.50829,hpi_f,hpi_f        
     };
 
-    //fast O3用时少80%，最大min(绝对误差,相对误差)不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
+    // fast1/fast2 用时少[0%,75%]，误差不超过1e-4
+    // fast3  用时少80%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
     inline float asin(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::asin(x);
         }
-        else{ 
+        else if(speed==ESpeedFast1||speed==ESpeedFast2){
+            if(abs(x)>1) return std::numeric_limits<float>::quiet_NaN();
+            //保证fast1 fast2的精度要求
+            if(abs(x)>0.99) return std::asin(x);
+
+            //查表法
+            x = (x+1) * (_bk/2);
+            int32_t id = (int32_t)x;
+            x -= id;
+            return (1-x)*_asin_lut[id]+x*_asin_lut[id+1];   
+        }
+        else{ //EspeedFast3
             if(abs(x)>1) return std::numeric_limits<float>::quiet_NaN();
 
             //查表法
@@ -240,12 +253,25 @@ namespace fm{
         }
     }
 
-    //fast O3用时少85%，最大min(绝对误差,相对误差)不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
+    // fast1/fast2 用时少[0%,81%]，误差不超过1e-4
+    // fast3 用时少85%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
     inline float acos(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::acos(x);
         }
-        else{ 
+        else if(speed==ESpeedFast1||speed==ESpeedFast2){
+            if(abs(x)>1) return std::numeric_limits<float>::quiet_NaN();
+            //保证fast1 fast2的精度要求
+            if(abs(x)>0.99) return std::acos(x);
+
+            //查表法
+            x = (x+1) * (_bk/2);
+            int32_t id = (int32_t)x;
+            x -= id;
+            float asi = (1-x)*_asin_lut[id]+x*_asin_lut[id+1];
+            return hpi_f - asi;              
+        }
+        else{ //EspeedFast3
             if(abs(x)>1) return std::numeric_limits<float>::quiet_NaN();
 
             //查表法
@@ -262,12 +288,12 @@ namespace fm{
         return ((0.0776509570923569f*xx -0.287434475393028f)*xx + ((pi_f/4.0f) -0.0776509570923569f +0.287434475393028))*x;
     }
 
-    //fast O3用时少20%，最大min(绝对误差,相对误差)不超过1e-3
+    // fast2/fast3 用时少20%，误差不超过1e-3
     inline float atan(float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::atan(x);
         }
-        else{ 
+        else{ // EspeedFast2 EspeedFast3
             if(abs(x)<=1){
                 return _Fast2ArcTan(x);
             }
@@ -279,12 +305,12 @@ namespace fm{
         }
     }
     
-    //fast O3用时少48%，最大min(绝对误差,相对误差)不超过2e-4
+    // fast2/fast3 用时少48%，误差不超过2e-4
     inline float atan2(float y,float x, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::atan2(y,x);
         }
-        else{ 
+        else{ // EspeedFast2 EspeedFast3
             float a = std::min (abs(x), abs(y)) / std::max (abs(x), abs(y));
             float s = a * a;
             float r = ((-0.0464964749f * s + 0.15931422f) * s - 0.327622764f) * s * a + a;
@@ -295,15 +321,15 @@ namespace fm{
         }
     }
 
-    //fast O3用时少91%（10+倍速），随机检测的超1e8个测试case均0误差
-    //但是再极端情况下（fmod(x,y)极为接近0时，有可能因为精度而得到相差除数y的结果）
-    //另外与标准库相比没有做inf，nan的适配
+    // fast1/fast2/fast3 用时少91%（10+倍速），随机检测的超1e8个测试case均0误差
+    // 但是在极端情况下（fmod(x,y)极为接近0时，有可能因为精度而得到相差除数y的结果）
+    // 无inf，nan的适配
     template <typename T>
     inline T fmod(T x,T y, speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedNormal){
+        if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::fmod(x,y);
         }
-        else{ 
+        else{ //ESpeedFast1 ESpeedFast2 ESpeedFast3
             T t=(T)((double)x - std::trunc((double)x/y)*(double)y);
             return t;
         }

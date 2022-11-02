@@ -276,7 +276,7 @@ int main(){
     my_rd_real_eng<float> myeg(-10,20);
     test_framework_unary<float> tp(myeg,20,MAX_DATA_N-5);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});
-    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast);});    
+    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast1);});    
     tp.set_err_standard([](float x)->float{return std::totst(x);});
     tp.runtest(1);
 
@@ -288,7 +288,7 @@ int main(){
     // my_rd_real_eng<float> myeg1(5,10),myeg2(1,10);
     // test_framework_binary<float> tp2(myeg1,myeg2,20,MAX_DATA_N_B-5);
     // tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedNormal);});
-    // tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedFast);});    
+    // tp2.add_func([](float x,float y)->float{return fm::totst(x,y,fm::ESpeedFast1);});    
     // tp2.set_err_standard([](float x,float y)->float{return std::totst(x,y);});
     // tp2.runtest(1);
 
