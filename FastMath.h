@@ -96,6 +96,15 @@ namespace fm{
         }
     }
 
+    inline double log2(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::log2(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return log2((float)x,speed);
+        }
+    }    
+
 
     //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
     template <typename T>
@@ -129,6 +138,15 @@ namespace fm{
         }
     }    
 
+    inline double exp(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::exp(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return exp((float)x,speed);
+        }
+    }       
+
     // fast2 用时少3%，误差不超过2e-3
     // fast3 用时少46%，误差不超过4e-2
     inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
@@ -140,6 +158,15 @@ namespace fm{
         }
     }
 
+    inline double exp2(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::exp2(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return exp2((float)x,speed);
+        }
+    }       
+
     // fast1/fast2/fast3 用时少45%，误差不超过6e-5
     inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
@@ -149,6 +176,15 @@ namespace fm{
             return log2(x,speed)*0.6931471805599453f; //ln2
         }    
     }
+
+    inline double log(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::log(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return log((float)x,speed);
+        }
+    }   
 
     const int32_t _bk=1024;
     const float _sin_lut[_bk+2]={
@@ -190,6 +226,15 @@ namespace fm{
         }       
     }
 
+    inline double sin(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::sin(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return sin((float)x,speed);
+        }
+    }   
+
     // fast1/fast2/fast3  用时少75%，误差不超过6e-6
     inline float cos(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
@@ -200,6 +245,15 @@ namespace fm{
         }
     }
 
+    inline double cos(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::cos(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return cos((float)x,speed);
+        }
+    }   
+
     // fast1/fast2/fast3 用时少65%，误差不超过2e-5(除奇异点附近的极端值外)
     inline float tan(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
@@ -209,6 +263,15 @@ namespace fm{
             return sin(x,speed)/sin(x+hpi_f,speed);
         }
     }
+
+    inline double tan(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::tan(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return tan((float)x,speed);
+        }
+    }  
 
     const float _asin_lut[_bk+2]={
 -hpi_f,-1.50829,-1.48238,-1.46249,-1.44571,-1.43093,-1.41755,-1.40525,-1.39379,-1.38302,
@@ -253,6 +316,15 @@ namespace fm{
         }
     }
 
+    inline double asin(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::asin(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return asin((float)x,speed);
+        }
+    }  
+
     // fast1/fast2 用时少[0%,81%]，误差不超过1e-4
     // fast3 用时少85%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
     inline float acos(float x, speed_option speed=FM_SPEED_DEFAULT){
@@ -283,6 +355,15 @@ namespace fm{
         }
     }
 
+    inline double acos(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::acos(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return acos((float)x,speed);
+        }
+    } 
+
     inline float _Fast2ArcTan(const float x) {
         float xx = x * x;
         return ((0.0776509570923569f*xx -0.287434475393028f)*xx + ((pi_f/4.0f) -0.0776509570923569f +0.287434475393028))*x;
@@ -304,6 +385,15 @@ namespace fm{
             }
         }
     }
+
+    inline double atan(double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::atan(x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return atan((float)x,speed);
+        }
+    } 
     
     // fast2/fast3 用时少48%，误差不超过2e-4
     inline float atan2(float y,float x, speed_option speed=FM_SPEED_DEFAULT){
@@ -320,6 +410,15 @@ namespace fm{
             return r;
         }
     }
+
+    inline double atan2(double y,double x,speed_option speed=FM_SPEED_DEFAULT){
+        if(speed==ESpeedStd){
+            return std::atan2(y,x);
+        }
+        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
+            return atan2((float)y,(float)x,speed);
+        }
+    } 
 
     // fast1/fast2/fast3 用时少91%（10+倍速），随机检测的超1e8个测试case均0误差
     // 但是在极端情况下（fmod(x,y)极为接近0时，有可能因为精度而得到相差除数y的结果）

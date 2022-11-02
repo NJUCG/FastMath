@@ -4,6 +4,8 @@
 
 想要使用，只需 `include "FastMath.h"` 即可，所有函数均被封装在 `namespace fm` 中，例如 `fm::sin(x)` 。
 
+暂时仅支持double和float，其他类型（如int）请调用时自行按需类型转换。
+
 提供了用精度换取速度的服务，目前支持如下档位：
 ```cpp
 namespace fm{
