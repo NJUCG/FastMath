@@ -67,7 +67,7 @@ namespace fm{
         return std::round(x);
     }    
 
-    // fast1/fast2/fast3 用时少37%，误差不超过8e-5
+    // fast1/fast2/fast3 用时少33%，误差不超过8e-5
     inline float log2(float x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log2(x);
@@ -84,6 +84,8 @@ namespace fm{
         }
     }
 
+    // normal 用时少39%，误差同std::log2(float)
+    // fast1/fast2/fast3 用时少59%，误差不超过8e-5
     inline double log2(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::log2(x);
@@ -126,17 +128,22 @@ namespace fm{
         }
     }    
 
+    // normal/fast1/fast2 用时少39%，误差同std::exp(float)
+    // fast3 用时少77%，误差不超过4e-2
     inline double exp(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::exp(x);
         }
-        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
-            return exp((float)x,speed);
+        else if(speed==ESpeedNormal||speed==ESpeedFast1||speed==ESpeedFast2){
+            return std::exp((float)x);
+        }
+        else {
+            return exp((float)x);
         }
     }       
 
     // fast2 用时少3%，误差不超过2e-3
-    // fast3 用时少46%，误差不超过4e-2
+    // fast3 用时少43%，误差不超过4e-2
     inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){        
             return std::exp2(x);
@@ -146,16 +153,17 @@ namespace fm{
         }
     }
 
+    // fast3 用时少43%，误差不超过4e-2
     inline double exp2(double x,speed_option speed=FM_SPEED_DEFAULT){
-        if(speed==ESpeedStd){
-            return std::exp2(x);
+        if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1||speed==ESpeedFast2){        
+            return std::exp2(x);//注：exp2(x) 与 exp2((float)x) 基本无性能差别
         }
-        else{//ESpeedNormal ESpeedFast1 ESpeedFast2 ESpeedFast3
-            return exp2((float)x,speed);
+        else{//ESpeedFast3
+            return exp((float)x*0.6931471805599453f,speed);//ln2
         }
     }       
 
-    // fast1/fast2/fast3 用时少45%，误差不超过6e-5
+    // fast1/fast2/fast3 用时少31%，误差不超过6e-5
     inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log(x);
@@ -165,6 +173,8 @@ namespace fm{
         }    
     }
 
+    // normal 用时少27%，误差同std::log(float)
+    // fast1/fast2/fast3 用时少47%，误差不超过6e-5
     inline double log(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::log(x);
@@ -214,6 +224,8 @@ namespace fm{
         }       
     }
 
+    // normal 用时少40%，误差同std::sin(float)
+    // fast1/fast2/fast3 用时少86%，误差不超过6e-6
     inline double sin(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::sin(x);
@@ -233,6 +245,8 @@ namespace fm{
         }
     }
 
+    // normal 用时少41%，误差同std::cos(float)
+    // fast1/fast2/fast3 用时少85%，误差不超过6e-6
     inline double cos(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::cos(x);
@@ -252,6 +266,8 @@ namespace fm{
         }
     }
 
+    // normal 用时少44%，误差同std::tan(float)
+    // fast1/fast2/fast3 用时少83%，误差不超过2e-5(除奇异点附近的极端值外)
     inline double tan(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::tan(x);
@@ -304,6 +320,9 @@ namespace fm{
         }
     }
 
+    // normal 用时少41%，误差同std::asin(float)
+    // fast1/fast2 用时少[41%,83%]，误差不超过1e-4
+    // fast3  用时少87%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
     inline double asin(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::asin(x);
@@ -343,6 +362,9 @@ namespace fm{
         }
     }
 
+    // normal 用时少37%，误差同std::acos(float)
+    // fast1/fast2 用时少[37%,82%]，误差不超过1e-4
+    // fast3  用时少86%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
     inline double acos(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::acos(x);
@@ -357,7 +379,7 @@ namespace fm{
         return ((0.0776509570923569f*xx -0.287434475393028f)*xx + ((pi_f/4.0f) -0.0776509570923569f +0.287434475393028))*x;
     }
 
-    // fast2/fast3 用时少20%，误差不超过1e-3
+    // fast2/fast3 用时少17%，误差不超过1e-3
     inline float atan(float x, speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::atan(x);
@@ -374,6 +396,8 @@ namespace fm{
         }
     }
 
+    // normal/fast1 用时少4%，误差同std::atan(float)
+    // fast2/fast3 用时少20%，误差不超过1e-3
     inline double atan(double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::atan(x);
@@ -399,6 +423,8 @@ namespace fm{
         }
     }
 
+    // normal/fast1 用时少3%，误差同std::atan2(float)
+    // fast2/fast3 用时少52%，误差不超过2e-4
     inline double atan2(double y,double x,speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::atan2(y,x);
