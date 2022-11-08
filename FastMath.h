@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <limits>
+#include <type_traits>
 
 
 //所有优化时间幅度都是指O3下相对ESpeedStd的数据，一般来说O1，O2幅度会更大
@@ -39,36 +40,36 @@ namespace fm{
 
     //这个确实没法优化
     template <typename T>
-    inline T abs(T x,speed_option speed=FM_SPEED_DEFAULT){
+    inline T abs(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::abs(x);
     }
 
     //cmath中abs本身提供float等泛型支持，fabs只是pure C的历史遗留问题
     template <typename T>
-    inline T fabs(T x,speed_option speed=FM_SPEED_DEFAULT){
+    inline T fabs(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::fabs(x);
     }
 
     //这个确实没法优化
     template <typename T>
-    inline T ceil(T x,speed_option speed=FM_SPEED_DEFAULT){
+    inline T ceil(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::ceil(x);
     }    
 
     //这个确实没法优化
     template <typename T>
-    inline T floor(T x,speed_option speed=FM_SPEED_DEFAULT){
+    inline T floor(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::floor(x);
     }    
 
     //这个确实没法优化
     template <typename T>
-    inline T round(T x,speed_option speed=FM_SPEED_DEFAULT){
+    inline T round(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::round(x);
     }    
 
     // fast1/fast2/fast3 用时少33%，误差不超过8e-5
-    inline float log2(float x,speed_option speed=FM_SPEED_DEFAULT){
+    inline float log2(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log2(x);
         }
@@ -86,7 +87,8 @@ namespace fm{
 
     // normal 用时少39%，误差同std::log2(float)
     // fast1/fast2/fast3 用时少59%，误差不超过8e-5
-    inline double log2(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double log2(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::log2(x);
         }
@@ -98,13 +100,13 @@ namespace fm{
 
     //经过测试，能够找到的其他实现均不如标准库（这些实现可见于DiscardedImpl.h）
     template <typename T>
-    inline T sqrt(T x, speed_option speed=FM_SPEED_DEFAULT){
+    inline T sqrt(T x,const speed_option speed=FM_SPEED_DEFAULT){
         return std::sqrt(x);
     }
 
     // fast2 用时少8%，误差不超过2e-3
     // fast3 用时少55%，误差不超过4e-2
-    inline float exp(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float exp(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::exp(x);
         }
@@ -130,7 +132,8 @@ namespace fm{
 
     // normal/fast1/fast2 用时少39%，误差同std::exp(float)
     // fast3 用时少77%，误差不超过4e-2
-    inline double exp(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double exp(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::exp(x);
         }
@@ -144,7 +147,7 @@ namespace fm{
 
     // fast2 用时少3%，误差不超过2e-3
     // fast3 用时少43%，误差不超过4e-2
-    inline float exp2(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float exp2(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){        
             return std::exp2(x);
         }
@@ -154,7 +157,8 @@ namespace fm{
     }
 
     // fast3 用时少43%，误差不超过4e-2
-    inline double exp2(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double exp2(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1||speed==ESpeedFast2){        
             return std::exp2(x);//注：exp2(x) 与 exp2((float)x) 基本无性能差别
         }
@@ -164,7 +168,7 @@ namespace fm{
     }       
 
     // fast1/fast2/fast3 用时少31%，误差不超过6e-5
-    inline float log(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float log(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::log(x);
         }
@@ -175,7 +179,8 @@ namespace fm{
 
     // normal 用时少27%，误差同std::log(float)
     // fast1/fast2/fast3 用时少47%，误差不超过6e-5
-    inline double log(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double log(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::log(x);
         }
@@ -201,7 +206,7 @@ namespace fm{
     };
 
     // fast1/fast2/fast3 用时少75%，误差不超过6e-6
-    inline float sin(float x, speed_option speed=FM_SPEED_DEFAULT){        
+    inline float sin(float x,const speed_option speed=FM_SPEED_DEFAULT){        
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::sin(x);
         }
@@ -226,7 +231,8 @@ namespace fm{
 
     // normal 用时少40%，误差同std::sin(float)
     // fast1/fast2/fast3 用时少86%，误差不超过6e-6
-    inline double sin(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double sin(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::sin(x);
         }
@@ -236,7 +242,7 @@ namespace fm{
     }   
 
     // fast1/fast2/fast3  用时少75%，误差不超过6e-6
-    inline float cos(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float cos(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::cos(x);
         }
@@ -247,7 +253,8 @@ namespace fm{
 
     // normal 用时少41%，误差同std::cos(float)
     // fast1/fast2/fast3 用时少85%，误差不超过6e-6
-    inline double cos(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double cos(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::cos(x);
         }
@@ -257,7 +264,7 @@ namespace fm{
     }   
 
     // fast1/fast2/fast3 用时少65%，误差不超过2e-5(除奇异点附近的极端值外)
-    inline float tan(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float tan(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::tan(x);
         }
@@ -268,7 +275,8 @@ namespace fm{
 
     // normal 用时少44%，误差同std::tan(float)
     // fast1/fast2/fast3 用时少83%，误差不超过2e-5(除奇异点附近的极端值外)
-    inline double tan(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double tan(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::tan(x);
         }
@@ -294,7 +302,7 @@ namespace fm{
 
     // fast1/fast2 用时少[0%,75%]，误差不超过1e-4
     // fast3  用时少80%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
-    inline float asin(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float asin(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::asin(x);
         }
@@ -323,7 +331,8 @@ namespace fm{
     // normal 用时少41%，误差同std::asin(float)
     // fast1/fast2 用时少[41%,83%]，误差不超过1e-4
     // fast3  用时少87%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
-    inline double asin(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double asin(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::asin(x);
         }
@@ -334,7 +343,7 @@ namespace fm{
 
     // fast1/fast2 用时少[0%,81%]，误差不超过1e-4
     // fast3 用时少85%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
-    inline float acos(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float acos(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::acos(x);
         }
@@ -365,7 +374,8 @@ namespace fm{
     // normal 用时少37%，误差同std::acos(float)
     // fast1/fast2 用时少[37%,82%]，误差不超过1e-4
     // fast3  用时少86%，误差不超过1e-2 (若输入在[-0.99,0.99]内时可达1e-4)
-    inline double acos(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double acos(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::acos(x);
         }
@@ -380,7 +390,7 @@ namespace fm{
     }
 
     // fast2/fast3 用时少17%，误差不超过1e-3
-    inline float atan(float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float atan(float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::atan(x);
         }
@@ -398,7 +408,8 @@ namespace fm{
 
     // normal/fast1 用时少4%，误差同std::atan(float)
     // fast2/fast3 用时少20%，误差不超过1e-3
-    inline double atan(double x,speed_option speed=FM_SPEED_DEFAULT){
+    template <typename T, std::enable_if_t<std::is_integral<T>::value || std::is_same<double,typename std::remove_cv<T>::type>::value, bool> = true>
+    inline double atan(T x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::atan(x);
         }
@@ -408,7 +419,7 @@ namespace fm{
     } 
     
     // fast2/fast3 用时少48%，误差不超过2e-4
-    inline float atan2(float y,float x, speed_option speed=FM_SPEED_DEFAULT){
+    inline float atan2(float y,float x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal||speed==ESpeedFast1){
             return std::atan2(y,x);
         }
@@ -425,7 +436,9 @@ namespace fm{
 
     // normal/fast1 用时少3%，误差同std::atan2(float)
     // fast2/fast3 用时少52%，误差不超过2e-4
-    inline double atan2(double y,double x,speed_option speed=FM_SPEED_DEFAULT){
+    template<typename T1,typename T2, std::enable_if_t<std::is_integral<T1>::value || std::is_same<double,typename std::remove_cv<T1>::type>::value, bool> = true
+                                    , std::enable_if_t<std::is_integral<T2>::value || std::is_same<double,typename std::remove_cv<T2>::type>::value, bool> = true>
+    inline double atan2(T1 y,T2 x,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd){
             return std::atan2(y,x);
         }
@@ -438,7 +451,7 @@ namespace fm{
     // 但是在极端情况下（fmod(x,y)极为接近0时，有可能因为精度而得到相差除数y的结果）
     // 无inf，nan的适配
     template <typename T>
-    inline T fmod(T x,T y, speed_option speed=FM_SPEED_DEFAULT){
+    inline T fmod(T x,T y,const speed_option speed=FM_SPEED_DEFAULT){
         if(speed==ESpeedStd||speed==ESpeedNormal){
             return std::fmod(x,y);
         }
@@ -450,7 +463,7 @@ namespace fm{
 
     //经过测试，能够找到的快于标准库的实现精度太差（这些实现可见于DiscardedImpl.h）
     template <typename T>
-    inline T pow(float x,float y, speed_option speed=FM_SPEED_DEFAULT){
+    inline T pow(float x,float y,const speed_option speed=FM_SPEED_DEFAULT){
         return std::pow(x,y);
     }
 

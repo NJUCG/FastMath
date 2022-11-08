@@ -275,18 +275,16 @@ int main(){
     // std::cin>>a>>b;
     // fm::init();
     // exit(0);
-    #define totst atan
+    #define totst sin
     // float x = fm::log(10.0f);
-
     
-
     // unary
     #define float double
     my_rd_real_eng<float> myeg(-20,20);
     test_framework_unary<float> tp(myeg,20,MAX_DATA_N-5);
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedStd);});
     tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedNormal);});    
-    tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast3);});    
+    // tp.add_func([](float x)->float{return fm::totst(x,fm::ESpeedFast3);});    
     tp.set_err_standard([](float x)->float{return std::totst(x);});
     tp.runtest(1);
 
