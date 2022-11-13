@@ -59,7 +59,7 @@ struct test_tmp{
             for(int t1=0;t1<rd;++t1){
                 pre(ein1) pre(ein2)
                 pre(min1) pre(min2)
-                if(t1&1){ //消除先后顺序造成的cache影响
+                if(!(t1&1)){ //消除先后顺序造成的cache影响
                     run_op(ein1,ein2,eout,time_dummyd);
                     run_op(min1,min2,mout,time_optd);
                 }
