@@ -1,5 +1,7 @@
 #include "testdep/Eigen/Dense"
 #include "VecMat.h"
+#include<iostream>
+using namespace std;
 
 #include<random>
 template <typename T>
@@ -14,6 +16,9 @@ class my_rd_real_eng{
             int sd=time(NULL)):e(sd),u(l,r){}
     T get_rd_val(){return u(e);}
 };
+template<typename T> T calc_err(T a,T b){
+    return min(abs(a-b),abs(a-b)/max((T)1,max(abs(a),abs(b))));
+}
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
 struct eigen_wpmat44{
@@ -49,6 +54,12 @@ struct vecei{
         for(int i=0;i<4;++i)
             vec[i]=dft_rd_eg1.get_rd_val();
     }
+    void print(){
+        printf(" [vecei](");
+        for(int i=0;i<4;++i)
+            printf("%c%.4lf",i==0?'\0':',',vec[i]);
+        printf(")  \n");
+    }
 };
 struct vecmy{
     vecmat::vec<4,float> vec;
@@ -56,10 +67,16 @@ struct vecmy{
         for(int i=0;i<4;++i)
             vec[i]=dft_rd_eg2.get_rd_val();
     }    
+    void print(){
+        printf(" [vecmy](");
+        for(int i=0;i<4;++i)
+            printf("%c%.4lf",i==0?'\0':',',vec[i]);
+        printf(")  \n");
+    }    
 };
 #define equal_impl \
     {for(int i=0;i<4;++i) \
-        if(fabs(a.vec[i]-b.vec[i])>1e-3) return false; \
+        if(calc_err(a.vec[i],b.vec[i])>1e-5) return false; \
     return true;}
 
 bool operator ==(vecei &a,vecmy &b) equal_impl
@@ -81,7 +98,12 @@ struct test_tmp{
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int i=0;i<MAX_DATA_N;++i)
-            assert(eout[i]==mout[i]);
+            if(!(eout[i]==mout[i])){
+                eout[i].print();
+                mout[i].print();
+                fflush(stdout);
+                assert(0);
+            }
     }
     void test(){
         int rd=20;
@@ -107,14 +129,13 @@ struct test_tmp{
     }
 };
 
-#include<iostream>
-using namespace std;
 
 test_tmp<vecei,vecmy> dft;
 int main(){
-    // vecmat::vec<10,float> a;
-    // a[0]=1;
-    // cout<<a[1]<<endl;
-
+    vecmat::vec<10,float> a=vecmat::vec<10,float>::zero();
+    a[0]=1;
+    cout<<a.len()<<endl;
+    // Eigen::Vector4f vec(1,2,3,4);
+    // cout<<vec.norm()<<endl;
     dft.test();
 }

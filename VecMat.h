@@ -1,6 +1,8 @@
 #include<cstdlib>
 #include<cstdint>
 #include<cstring>
+#include<cmath>
+
 namespace vecmat{
     struct float44{
         float a[4][4];
@@ -40,12 +42,14 @@ namespace vecmat{
         );
     }
 
+
+    //目前正确性tested，对于n=4速度与eigen基本相同
     
     template<uint32_t N,typename T>
     struct vec{
         T a[N];
-        static vec zero(){vec r; memset(r.a,0,sizeof(r.a)); return r;}
-        static vec fill(T x){vec r; for(int i=0;i<N;++i) r.a[i]=x; return r;}
+        static constexpr vec zero(){vec r; memset(r.a,0,sizeof(r.a)); return r;}
+        static constexpr vec fill(T x){vec r; for(int i=0;i<N;++i) r.a[i]=x; return r;}
 
         vec(){}
         inline T& operator[](int x){return a[x];}
@@ -84,10 +88,16 @@ namespace vecmat{
             return false;
         } 
         //只加减，cowise product另做
-        //正确性tested，对于n=4速度与eigen基本相同
+
+        //欧几里得长度，2范数
+        constexpr T len(){
+            T rt=0;
+            for(int i=0;i<N;++i)
+                rt += a[i] * a[i];
+            return std::sqrt(rt);
+        }
     };
 
-    //正确性tested，对于n=4速度与eigen基本相同
     #define VSBINARY_OP_DEF_HELPER(op) \
     template<uint32_t N,typename T> \
     inline vec<N,T> operator op(const vec<N,T>& a,const T& b){ \
@@ -117,8 +127,35 @@ namespace vecmat{
     VSASSIGN_OP_DEF_HELPER(*=)
     VSASSIGN_OP_DEF_HELPER(/=)
     #undef VSASSIGN_OP_DEF_HELPER    
-    //正确性tested，对于n=4速度与eigen基本相同
+    
+    //目前正确性tested，对于n=4速度与eigen基本相同
+    
+    //下面的还没测试过。
+    //TODO 测试 & 是否确定complie time & 好用的构造函数
 
+    //N*M矩阵
+    template<uint32_t N,uint32_t M,typename T>
+    struct mat{
+        vec<N,T> cols[M];
 
+        static constexpr mat zero(){
+            mat m; 
+            for(int i=0;i<M;++i) 
+                m.cols[i]=vec<N,T>::zero(); 
+            return m;
+        }
+        static constexpr mat scalar(T x){
+            mat m; 
+            for(int i=0;i<M;++i){ 
+                m.cols[i]=vec<N,T>::zero(); 
+                m.cols[i][i]=x;
+            }
+            return m;
+        }   
+        static constexpr mat identity(){
+            return scalar((T)1);
+        }  
+
+    };
     
 }
