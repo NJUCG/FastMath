@@ -42,40 +42,79 @@ struct my_wpmat44{
     }
 };
 
+
+struct vecei{
+    Eigen::Vector4f vec;
+    void rdinit(){
+        for(int i=0;i<4;++i)
+            vec[i]=dft_rd_eg1.get_rd_val();
+    }
+};
+struct vecmy{
+    vecmat::vec<4,float> vec;
+    void rdinit(){
+        for(int i=0;i<4;++i)
+            vec[i]=dft_rd_eg2.get_rd_val();
+    }    
+};
+#define equal_impl \
+    {for(int i=0;i<4;++i) \
+        if(fabs(a.vec[i]-b.vec[i])>1e-3) return false; \
+    return true;}
+
+bool operator ==(vecei &a,vecmy &b) equal_impl
+bool operator ==(vecmy &a,vecei &b) equal_impl
+
 #define MAX_DATA_N 5000005
 // #define MAX_DIFF_N 20
+#define testop *
+template<typename T1,typename T2>
 struct test_tmp{
-    eigen_wpmat44 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
-    my_wpmat44 min1[MAX_DATA_N],min2[MAX_DATA_N],mout[MAX_DATA_N];
+    T1 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
+    T2 min1[MAX_DATA_N],min2[MAX_DATA_N],mout[MAX_DATA_N];
 
     #define pre(a) {for(int oo=0;oo<MAX_DATA_N;++oo) a[oo].rdinit();} 
-    #define run_op(in1,in2,out,ti) {ti=clock(); \
-                                    for(int i=0;i<MAX_DATA_N;++i) out[i].matrix=in1[i]*in2[i]; \
-                                    ti=(clock()-ti)/CLOCKS_PER_SEC;}
+    #define run_op(in1,in2,out,ti) \
+        {ti=clock(); \
+        for(int i=0;i<MAX_DATA_N;++i) \
+        out[i].vec=in1[i].vec[0] testop in2[i].vec; \
+        ti=(clock()-ti)/CLOCKS_PER_SEC;}
+    void check(){
+        for(int i=0;i<MAX_DATA_N;++i)
+            assert(eout[i]==mout[i]);
+    }
     void test(){
         int rd=20;
-        double time_dummy=0,time_opt=0,time_dummyd=0,time_optd=0;  
+        double time_ei=0,time_my=0,time_eid=0,time_myd=0;  
             double tmean_rel_err_d=0,tmean_rel_err_o=0;
             for(int t1=0;t1<rd;++t1){
                 pre(ein1) pre(ein2)
                 pre(min1) pre(min2)
                 if(!(t1&1)){ //消除先后顺序造成的cache影响
-                    run_op(ein1,ein2,eout,time_dummyd);
-                    run_op(min1,min2,mout,time_optd);
+                    run_op(ein1,ein2,eout,time_eid);
+                    run_op(min1,min2,mout,time_myd);
                 }
                 else{
-                    run_op(min1,min2,mout,time_optd);
-                    run_op(ein1,ein2,eout,time_dummyd);
+                    run_op(min1,min2,mout,time_myd);
+                    run_op(ein1,ein2,eout,time_eid);
                 }
-
-                printf("[##%3d] Time dummy: %.6lf  Time optmi: %.6lf\n",t1,time_dummyd,time_optd);
-                time_dummy+=time_dummyd;
-                time_opt+=time_optd;
+                check();
+                printf("[##%3d] Time ei: %.6lf  Time my: %.6lf\n",t1,time_eid,time_myd);
+                time_ei+=time_eid;
+                time_my+=time_myd;
             }    
-        printf("[TOTAL] Time dummy: %.6lf  Time optmi: %.6lf\n",time_dummy,time_opt);
+        printf("[TOTAL] Time ei: %.6lf  Time my: %.6lf\n",time_ei,time_my);
     }
-}dft;
+};
 
+#include<iostream>
+using namespace std;
+
+test_tmp<vecei,vecmy> dft;
 int main(){
+    // vecmat::vec<10,float> a;
+    // a[0]=1;
+    // cout<<a[1]<<endl;
+
     dft.test();
 }
