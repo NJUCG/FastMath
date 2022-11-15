@@ -84,7 +84,7 @@ bool operator ==(vecmy &a,vecei &b) equal_impl
 
 #define MAX_DATA_N 5000005
 // #define MAX_DIFF_N 20
-#define testop *
+#define testop +
 template<typename T1,typename T2>
 struct test_tmp{
     T1 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
@@ -94,7 +94,7 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].vec=in1[i].vec[0] testop in2[i].vec; \
+        out[i].vec=in1[i].vec testop in2[i].vec; \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int i=0;i<MAX_DATA_N;++i)
@@ -129,13 +129,21 @@ struct test_tmp{
     }
 };
 
-
 test_tmp<vecei,vecmy> dft;
+
+__attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
+    vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
+    return a;
+}
+
 int main(){
-    vecmat::vec<10,float> a=vecmat::vec<10,float>::zero();
+    vecmat::mat<10,10,float> b1=noinlinewp(),b2=noinlinewp();
+    cout<<b1[1][1]<<b2[2][2]<<endl;
+    vecmat::vec<30,float> a;
+    cout<<a[4]<<endl;
     a[0]=1;
-    cout<<a.len()<<endl;
-    // Eigen::Vector4f vec(1,2,3,4);
-    // cout<<vec.norm()<<endl;
+    int t=0;
+    cout<<((t+=1)+=1)<<endl;
+
     dft.test();
 }

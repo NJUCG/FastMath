@@ -2,7 +2,8 @@
 #include<cstdint>
 #include<cstring>
 #include<cmath>
-
+#include<iostream>
+#include<initializer_list>
 namespace vecmat{
     struct float44{
         float a[4][4];
@@ -52,43 +53,14 @@ namespace vecmat{
         static constexpr vec fill(T x){vec r; for(int i=0;i<N;++i) r.a[i]=x; return r;}
 
         vec(){}
+        vec(const T *initarr){memcpy(a,initarr,sizeof(T)*N);}
+        //为了效率暂时不考虑li.size()<N的情况（此时会复制进不可知的值）
+        vec(std::initializer_list<T> li){
+            for(int i=0;i<N;++i) a[i]=*(li.begin()+i);
+        }
         inline T& operator[](int x){return a[x];}
         inline const T& operator[](int x)const{return a[x];}
         
-        //正确性tested，对于n=4速度与eigen基本相同
-        #define VVBINARY_OP_DEF_HELPER(op) \
-        inline vec operator op(const vec& o) const{ \
-            vec r; \
-            for(int i=0;i<N;++i) \
-                r[i] = a[i] op o[i]; \
-            return r; \
-        }  
-        VVBINARY_OP_DEF_HELPER(+)
-        VVBINARY_OP_DEF_HELPER(-)
-        #undef VVBINARY_OP_DEF_HELPER
-        #define VVASSIGN_OP_DEF_HELPER(op) \
-        inline vec& operator op(const vec& o){ \
-            for(int i=0;i<N;++i) \
-                a[i] op o[i]; \
-            return *this; \
-        }  
-        VVASSIGN_OP_DEF_HELPER(+=)
-        VVASSIGN_OP_DEF_HELPER(-=)
-        #undef VVASSIGN_OP_DEF_HELPER
-        //不考虑精度，严格相等，考虑精度请使用vecmat::equal(eps)
-        inline bool operator ==(const vec& o) const{
-            for(int i=0;i<N;++i) 
-                if(a[i] != o[i]) return false; 
-            return true;
-        } 
-        //不考虑精度，考虑精度请使用vecmat::inequal(eps)
-        inline bool operator !=(const vec& o) const{
-            for(int i=0;i<N;++i) 
-                if(a[i] != o[i]) return true; 
-            return false;
-        } 
-        //只加减，cowise product另做
-
         //欧几里得长度，2范数
         constexpr T len(){
             T rt=0;
@@ -97,6 +69,54 @@ namespace vecmat{
             return std::sqrt(rt);
         }
     };
+
+
+
+    // template<>
+    // void vec<4,float>::spec(int x){
+    //     printf();
+
+    // }
+
+
+    //只加减，cowise product另做
+    //正确性tested，对于n=4速度与eigen基本相同
+    #define VVBINARY_OP_DEF_HELPER(op) \
+    template<uint32_t N,typename T> \
+    inline vec<N,T> operator op(const vec<N,T>& a, const vec<N,T>& o){ \
+        vec<N,T> r; \
+        for(int i=0;i<N;++i) \
+            r[i] = a[i] op o[i]; \
+        return r; \
+    }  
+    VVBINARY_OP_DEF_HELPER(+)
+    VVBINARY_OP_DEF_HELPER(-)
+    #undef VVBINARY_OP_DEF_HELPER
+    #define VVASSIGN_OP_DEF_HELPER(op) \
+    template<uint32_t N,typename T> \
+    inline vec<N,T>& operator op(vec<N,T>& a, const vec<N,T>& o){ \
+        for(int i=0;i<N;++i) \
+            a[i] op o[i]; \
+        return a; \
+    }  
+    VVASSIGN_OP_DEF_HELPER(+=)
+    VVASSIGN_OP_DEF_HELPER(-=)
+    #undef VVASSIGN_OP_DEF_HELPER
+    //不考虑精度，严格相等，考虑精度请使用vecmat::equal(eps)
+    template<uint32_t N,typename T> 
+    inline bool operator ==(const vec<N,T>& a, const vec<N,T>& o){
+        for(int i=0;i<N;++i) 
+            if(a[i] != o[i]) return false; 
+        return true;
+    } 
+    //不考虑精度，考虑精度请使用vecmat::inequal(eps)
+    template<uint32_t N,typename T> 
+    inline bool operator !=(const vec<N,T>& a, const vec<N,T>& o){
+        for(int i=0;i<N;++i) 
+            if(a[i] != o[i]) return true; 
+        return false;
+    } 
+
 
     #define VSBINARY_OP_DEF_HELPER(op) \
     template<uint32_t N,typename T> \
@@ -133,6 +153,9 @@ namespace vecmat{
     //下面的还没测试过。
     //TODO 测试 & 是否确定complie time & 好用的构造函数
 
+    //对于zero scalar等，不是complie time const直接复制，而是当场执行，但是可能这样反而更快（只要xmm一直store，无需load一下store一下）
+    //暂定：构造函数对于泛型用初始化列表（即{a,b,c}），234的特化则可加上(a,b,c)的形式
+
     //N*M矩阵
     template<uint32_t N,uint32_t M,typename T>
     struct mat{
@@ -155,7 +178,10 @@ namespace vecmat{
         static constexpr mat identity(){
             return scalar((T)1);
         }  
-
+        inline vec<N,T>& operator[](int x){return cols[x];}
+        inline const vec<N,T>& operator[](int x)const{return cols[x];}
     };
+
+    
     
 }
