@@ -20,62 +20,64 @@ template<typename T> T calc_err(T a,T b){
     return min(abs(a-b),abs(a-b)/max((T)1,max(abs(a),abs(b))));
 }
 
+#define tmp_test_n 5
+
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
-struct eigen_wpmat44{
-	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
-    auto operator *(const eigen_wpmat44 &o){
-        Eigen::Matrix4f tmp(matrix*o.matrix);
-        return tmp;
-    }
-    void rdinit(){
-        for(int i=0;i<4;++i)
-            for(int j=0;j<4;++j)
-                matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
-    }
-};
+// struct eigen_wpmat44{
+// 	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
+//     auto operator *(const eigen_wpmat44 &o){
+//         Eigen::Matrix4f tmp(matrix*o.matrix);
+//         return tmp;
+//     }
+//     void rdinit(){
+//         for(int i=0;i<tmp_test_n;++i)
+//             for(int j=0;j<tmp_test_n;++j)
+//                 matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
+//     }
+// };
 my_rd_real_eng<float> dft_rd_eg2(-1000.0,1000.0,12345);
-struct my_wpmat44{
-    vecmat::float44 matrix=vecmat::float44();
-    auto operator *(const my_wpmat44 &o){
-        auto tmp(matrix*o.matrix);
-        return tmp;
-    }
-    void rdinit(){
-        for(int i=0;i<4;++i)
-            for(int j=0;j<4;++j)
-                matrix.a[i][j]=dft_rd_eg2.get_rd_val();
-    }
-};
+// struct my_wpmat44{
+//     vecmat::float44 matrix=vecmat::float44();
+//     auto operator *(const my_wpmat44 &o){
+//         auto tmp(matrix*o.matrix);
+//         return tmp;
+//     }
+//     void rdinit(){
+//         for(int i=0;i<tmp_test_n;++i)
+//             for(int j=0;j<tmp_test_n;++j)
+//                 matrix.a[i][j]=dft_rd_eg2.get_rd_val();
+//     }
+// };
 
 
 struct vecei{
-    Eigen::Vector4f vec;
+    Eigen::Matrix<float,tmp_test_n,1> vec;
     void rdinit(){
-        for(int i=0;i<4;++i)
+        for(int i=0;i<tmp_test_n;++i)
             vec[i]=dft_rd_eg1.get_rd_val();
     }
     void print(){
         printf(" [vecei](");
-        for(int i=0;i<4;++i)
+        for(int i=0;i<tmp_test_n;++i)
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     }
 };
 struct vecmy{
-    vecmat::vec<4,float> vec;
+    vecmat::vec<tmp_test_n,float> vec;
     void rdinit(){
-        for(int i=0;i<4;++i)
+        for(int i=0;i<tmp_test_n;++i)
             vec[i]=dft_rd_eg2.get_rd_val();
     }    
     void print(){
         printf(" [vecmy](");
-        for(int i=0;i<4;++i)
+        for(int i=0;i<tmp_test_n;++i)
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     }    
 };
 #define equal_impl \
-    {for(int i=0;i<4;++i) \
+    {for(int i=0;i<tmp_test_n;++i) \
         if(calc_err(a.vec[i],b.vec[i])>1e-5) return false; \
     return true;}
 
@@ -131,19 +133,19 @@ struct test_tmp{
 
 test_tmp<vecei,vecmy> dft;
 
-__attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
-    vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
-    return a;
-}
+// __attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
+//     vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
+//     return a;
+// }
 
 int main(){
-    vecmat::mat<10,10,float> b1=noinlinewp(),b2=noinlinewp();
-    cout<<b1[1][1]<<b2[2][2]<<endl;
-    vecmat::vec<30,float> a;
-    cout<<a[4]<<endl;
-    a[0]=1;
-    int t=0;
-    cout<<((t+=1)+=1)<<endl;
+    // vecmat::mat<10,10,float> b1=noinlinewp(),b2=noinlinewp();
+    // cout<<b1[1][1]<<b2[2][2]<<endl;
+    // vecmat::vec<30,float> a;
+    // cout<<a[4]<<endl;
+    // a[0]=1;
+    // int t=0;
+    // cout<<((t+=1)+=1)<<endl;
 
     dft.test();
 }
