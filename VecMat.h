@@ -112,6 +112,7 @@ namespace vecmat{
     VVASSIGN_OP_DEF_HELPER(+=)
     VVASSIGN_OP_DEF_HELPER(-=)
     #undef VVASSIGN_OP_DEF_HELPER
+
     //不考虑精度，严格相等，考虑精度请使用vecmat::equal(eps)
     template<uint32_t N,typename T> 
     inline bool operator ==(const vec<N,T>& a, const vec<N,T>& o){
@@ -223,11 +224,73 @@ namespace vecmat{
         }
     };
 
+    //只加减，cowise product另做
+    #define MMBINARY_OP_DEF_HELPER(op) \
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator op(const mat<N,M,T>& a, const mat<N,M,T>& o){ \
+        mat<N,M,T> r; \
+        for(int i=0;i<N;++i) \
+            r[i] = a[i] op o[i]; \
+        return r; \
+    }  
+    MMBINARY_OP_DEF_HELPER(+)
+    MMBINARY_OP_DEF_HELPER(-)
+    #undef MMBINARY_OP_DEF_HELPER
+    #define MMASSIGN_OP_DEF_HELPER(op) \
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator op(mat<N,M,T>& a, const mat<N,M,T>& o){ \
+        for(int i=0;i<N;++i) \
+            a[i] op o[i]; \
+        return a; \
+    }  
+    MMASSIGN_OP_DEF_HELPER(+=)
+    MMASSIGN_OP_DEF_HELPER(-=)
+    #undef MMASSIGN_OP_DEF_HELPER    
     
-    
+    //不考虑精度，严格相等，考虑精度请使用vecmat::equal(eps)
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator ==(const mat<N,M,T>& a, const mat<N,M,T>& o){ \
+        for(int i=0;i<N;++i) 
+            if(a[i] != o[i]) return false; 
+        return true;
+    } 
+    //不考虑精度，考虑精度请使用vecmat::inequal(eps)
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator !=(const mat<N,M,T>& a, const mat<N,M,T>& o){ \
+        for(int i=0;i<N;++i) 
+            if(a[i] != o[i]) return true; 
+        return false;
+    } 
 
+    #define VSBINARY_OP_DEF_HELPER(op) \
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator op(const mat<N,M,T>& a,const T& b){ \
+        mat<N,M,T> r; \
+        for(int i=0;i<N;++i) \
+            r[i] = a[i] op b; \
+        return r; \
+    }  \
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T> operator op(const T& b,const mat<N,M,T>& a){ \
+        mat<N,M,T> r; \
+        for(int i=0;i<N;++i) \
+            r[i] = a[i] op b; \
+        return r; \
+    }  
+    VSBINARY_OP_DEF_HELPER(*)
+    VSBINARY_OP_DEF_HELPER(/)
+    #undef VSBINARY_OP_DEF_HELPER
 
-
+    #define MSASSIGN_OP_DEF_HELPER(op) \
+    template<uint32_t N,uint32_t M,typename T> \
+    inline mat<N,M,T>& operator op(mat<N,M,T>& a,const T& b){ \
+        for(int i=0;i<N;++i) \
+            a[i] op b; \
+        return a; \
+    }
+    MSASSIGN_OP_DEF_HELPER(*=)
+    MSASSIGN_OP_DEF_HELPER(/=)
+    #undef MSASSIGN_OP_DEF_HELPER  
 
 
 

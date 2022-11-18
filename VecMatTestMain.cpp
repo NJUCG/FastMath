@@ -20,7 +20,10 @@ template<typename T> T calc_err(T a,T b){
     return min(abs(a-b),abs(a-b)/max((T)1,max(abs(a),abs(b))));
 }
 
-#define tmp_test_n 5
+
+
+#define tmp_test_n 4
+#define tmp_test_m 4
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
 struct eigen_wpmat44{
@@ -83,10 +86,59 @@ struct vecmy{
 
 bool operator ==(vecei &a,vecmy &b) equal_impl
 bool operator ==(vecmy &a,vecei &b) equal_impl
+#undef equal_impl
+
+
+struct matei{
+    Eigen::Matrix<float,tmp_test_n,tmp_test_m> vec;
+    void rdinit(){
+        for(int i=0;i<tmp_test_n;++i)
+            for(int j=0;j<tmp_test_m;++j)
+                vec.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
+    }
+    float val(int i,int j){
+        return vec.coeff(i,j);
+    }
+    // void print(){
+    //     printf(" [vecei](");
+    //     for(int i=0;i<tmp_test_n;++i)
+    //         printf("%c%.4lf",i==0?'\0':',',vec[i]);
+    //     printf(")  \n");
+    // }
+};
+struct matmy{
+    vecmat::mat<tmp_test_n,tmp_test_m,float> vec;
+    void rdinit(){
+        for(int i=0;i<tmp_test_n;++i)
+            for(int j=0;j<tmp_test_m;++j)
+                vec[i][j]=dft_rd_eg2.get_rd_val();
+    }    
+    float val(int i,int j){
+        return vec[i][j];
+    }
+    // void print(){
+    //     printf(" [vecmy](");
+    //     for(int i=0;i<tmp_test_n;++i)
+    //         printf("%c%.4lf",i==0?'\0':',',vec[i]);
+    //     printf(")  \n");
+    // }    
+};
+
+#define equal_impl \
+    {for(int i=0;i<tmp_test_n;++i) \
+        for(int j=0;j<tmp_test_m;++j) \
+        if(calc_err(a.val(i,j),b.val(i,j))>1e-5) return false; \
+    return true;}
+
+bool operator ==(matei &a,matmy &b) equal_impl
+bool operator ==(matmy &a,matei &b) equal_impl
+#undef equal_impl
+#undef tmp_test_m
+#undef tmp_test_n
 
 #define MAX_DATA_N 5000005
 // #define MAX_DIFF_N 20
-#define testop +
+#define testop /=
 template<typename T1,typename T2>
 struct test_tmp{
     T1 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
@@ -96,19 +148,18 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].vec=in1[i].vec testop in2[i].vec; \
+        out[i].vec=in1[i].vec testop in2[i].val(0,0); \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int i=0;i<MAX_DATA_N;++i)
             if(!(eout[i]==mout[i])){
-                eout[i].print();
-                mout[i].print();
-                fflush(stdout);
+                // eout[i].print();
+                // mout[i].print();
+                // fflush(stdout);
                 assert(0);
             }
     }
-    void test(){
-        int rd=20;
+    void test(int rd=10){
         double time_ei=0,time_my=0,time_eid=0,time_myd=0;  
             double tmean_rel_err_d=0,tmean_rel_err_o=0;
             for(int t1=0;t1<rd;++t1){
@@ -131,7 +182,7 @@ struct test_tmp{
     }
 };
 
-test_tmp<vecei,vecmy> dft;
+test_tmp<matei,matmy> dft;
 
 // __attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
 //     vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
@@ -147,14 +198,14 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
-    vecmat::mat<4,4,float> b1(
-    {
-        vecmat::vec4f({1,2,3,4}),
-        vecmat::vec4f({2,2,3,4}),
-        vecmat::vec4f({3,2,3,4}),
-        vecmat::vec4f({4,2,3,4})
-    }
-    );
-    b1.debug_print();
+    // vecmat::mat<4,4,float> b1(
+    // {
+    //     vecmat::vec4f({1,2,3,4}),
+    //     vecmat::vec4f({2,2,3,4}),
+    //     vecmat::vec4f({3,2,3,4}),
+    //     vecmat::vec4f({4,2,3,4})
+    // }
+    // );
+    // b1.debug_print();
     dft.test();
 }
