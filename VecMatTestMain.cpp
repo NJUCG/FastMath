@@ -23,31 +23,31 @@ template<typename T> T calc_err(T a,T b){
 #define tmp_test_n 5
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
-// struct eigen_wpmat44{
-// 	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
-//     auto operator *(const eigen_wpmat44 &o){
-//         Eigen::Matrix4f tmp(matrix*o.matrix);
-//         return tmp;
-//     }
-//     void rdinit(){
-//         for(int i=0;i<tmp_test_n;++i)
-//             for(int j=0;j<tmp_test_n;++j)
-//                 matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
-//     }
-// };
+struct eigen_wpmat44{
+	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
+    auto operator *(const eigen_wpmat44 &o){
+        Eigen::Matrix4f tmp(matrix*o.matrix);
+        return tmp;
+    }
+    void rdinit(){
+        for(int i=0;i<tmp_test_n;++i)
+            for(int j=0;j<tmp_test_n;++j)
+                matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
+    }
+};
 my_rd_real_eng<float> dft_rd_eg2(-1000.0,1000.0,12345);
-// struct my_wpmat44{
-//     vecmat::float44 matrix=vecmat::float44();
-//     auto operator *(const my_wpmat44 &o){
-//         auto tmp(matrix*o.matrix);
-//         return tmp;
-//     }
-//     void rdinit(){
-//         for(int i=0;i<tmp_test_n;++i)
-//             for(int j=0;j<tmp_test_n;++j)
-//                 matrix.a[i][j]=dft_rd_eg2.get_rd_val();
-//     }
-// };
+struct my_wpmat44{
+    vecmat::float44 matrix=vecmat::float44();
+    auto operator *(const my_wpmat44 &o){
+        auto tmp(matrix*o.matrix);
+        return tmp;
+    }
+    void rdinit(){
+        for(int i=0;i<tmp_test_n;++i)
+            for(int j=0;j<tmp_test_n;++j)
+                matrix.a[i][j]=dft_rd_eg2.get_rd_val();
+    }
+};
 
 
 struct vecei{
@@ -147,5 +147,14 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
+    vecmat::mat<4,4,float> b1(
+    {
+        vecmat::vec4f({1,2,3,4}),
+        vecmat::vec4f({2,2,3,4}),
+        vecmat::vec4f({3,2,3,4}),
+        vecmat::vec4f({4,2,3,4})
+    }
+    );
+    b1.debug_print();
     dft.test();
 }

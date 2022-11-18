@@ -1,6 +1,7 @@
 #include<cstdlib>
 #include<cstdint>
 #include<cstring>
+#include<cstdio>
 #include<cmath>
 #include<iostream>
 #include<initializer_list>
@@ -67,6 +68,15 @@ namespace vecmat{
             for(int i=0;i<N;++i)
                 rt += a[i] * a[i];
             return std::sqrt(rt);
+        }
+
+        void debug_print(char ed='\n'){
+            printf("[vec<%d>](",N);
+            for(int i=0;i<N;++i){
+                std::cout<<(i==0?'\0':',')<<a[i];
+            }
+            printf(")%c",ed);
+            fflush(stdout);
         }
     };
 
@@ -159,29 +169,90 @@ namespace vecmat{
     //N*M矩阵
     template<uint32_t N,uint32_t M,typename T>
     struct mat{
-        vec<N,T> cols[M];
+        vec<M,T> rows[N];
 
         static constexpr mat zero(){
             mat m; 
-            for(int i=0;i<M;++i) 
-                m.cols[i]=vec<N,T>::zero(); 
+            for(int i=0;i<N;++i) 
+                m.rows[i]=vec<M,T>::zero(); 
             return m;
         }
         static constexpr mat scalar(T x){
+            static_assert(N==M,"only available in square matrix");
             mat m; 
-            for(int i=0;i<M;++i){ 
-                m.cols[i]=vec<N,T>::zero(); 
-                m.cols[i][i]=x;
+            for(int i=0;i<N;++i){ 
+                m.rows[i]=vec<M,T>::zero(); 
+                m.rows[i][i]=x;
             }
             return m;
         }   
+        static constexpr mat diag(std::initializer_list<T> li){
+            static_assert(N==M,"only available in square matrix");
+            mat m; 
+            for(int i=0;i<N;++i){ 
+                m.rows[i]=vec<M,T>::zero(); 
+                m.rows[i][i]=*(li.begin()+i);
+            }
+            return m;
+        }           
         static constexpr mat identity(){
+            static_assert(N==M,"only available in square matrix");
             return scalar((T)1);
         }  
-        inline vec<N,T>& operator[](int x){return cols[x];}
-        inline const vec<N,T>& operator[](int x)const{return cols[x];}
+
+        inline vec<M,T>& operator[](int x){return rows[x];}
+        inline const vec<M,T>& operator[](int x)const{return rows[x];}
+
+        mat(){}
+        //为了效率暂时不考虑li.size()<N的情况（此时会复制进不可知的值）
+        mat(std::initializer_list<T> li){
+            for(int i=0;i<N;++i)
+                for(int j=0;j<M;++j) 
+                    rows[i][j]=*(li.begin()+i*M+j);
+        }
+        mat(std::initializer_list< vec<M,T> > li){
+            for(int i=0;i<N;++i)
+                rows[i]=*(li.begin()+i);
+        }
+
+        void debug_print(){
+            printf("[mat<%d,%d>]\n",N,M);
+            for(int i=0;i<N;++i)
+                rows[i].debug_print('\n');
+            fflush(stdout);
+        }
     };
 
     
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // typename maker
+    #define VECMAT_TYPEDEF_MAKER(T,Tsym) \
+    using vec##2##Tsym = vec<2, T>;     \
+    using vec##3##Tsym = vec<3, T>;     \
+    using vec##4##Tsym = vec<4, T>;     \
+    using mat##22##Tsym = mat<2, 2, T>;     \
+    using mat##33##Tsym = mat<3, 3, T>;     \
+    using mat##44##Tsym = mat<4, 4, T>;      
+
+    VECMAT_TYPEDEF_MAKER(float,f);
+    VECMAT_TYPEDEF_MAKER(double,d);
+    VECMAT_TYPEDEF_MAKER(int,i);
+    VECMAT_TYPEDEF_MAKER(long,l);
+    VECMAT_TYPEDEF_MAKER(long long,ll);
+
+    #undef VECMAT_TYPEDEF_MAKER
 }
