@@ -22,8 +22,8 @@ template<typename T> T calc_err(T a,T b){
 
 
 
-#define tmp_test_n 5
-#define tmp_test_m 4
+#define tmp_test_n 3
+#define tmp_test_m 3
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
 struct eigen_wpmat44{
@@ -55,6 +55,8 @@ struct my_wpmat44{
 
 struct vecei{
     Eigen::Matrix<float,tmp_test_n,1> vec;
+    vecei(){}
+    vecei(Eigen::Matrix<float,tmp_test_n,1> _vec):vec{_vec}{}
     void rdinit(){
         for(int i=0;i<tmp_test_n;++i)
             vec[i]=dft_rd_eg1.get_rd_val();
@@ -65,12 +67,14 @@ struct vecei{
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     }
-    float operator *(const vecei &o){
-        return vec.dot(o.vec); 
+    vecei operator *(const vecei &o){
+        return vecei(vec.cross(o.vec)); 
     } 
 };
 struct vecmy{
     vecmat::vec<tmp_test_n,float> vec;
+    vecmy(){}
+    vecmy(vecmat::vec<tmp_test_n,float> _vec):vec{_vec}{}
     void rdinit(){
         for(int i=0;i<tmp_test_n;++i)
             vec[i]=dft_rd_eg2.get_rd_val();
@@ -81,8 +85,8 @@ struct vecmy{
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     } 
-    float operator *(const vecmy &o){
-        return vecmat::dot(vec,o.vec);
+    vecmy operator *(const vecmy &o){
+        return vecmy(vecmat::cross(vec,o.vec)); 
     }    
 };
 #define equal_impl \
@@ -145,7 +149,7 @@ bool operator ==(matmy &a,matei &b) equal_impl
 #undef tmp_test_m
 #undef tmp_test_n
 
-#define MAX_DATA_N 5000005
+#define MAX_DATA_N 20000005
 // #define MAX_DIFF_N 20
 #define testop /=
 template<typename T1,typename T2>
@@ -157,7 +161,7 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].vec[0]=in1[i] * in2[i]; \
+        out[i]=in1[i] * in2[i]; \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int i=0;i<MAX_DATA_N;++i)
@@ -204,8 +208,8 @@ test_tmp<vecei,vecmy> dft;
 int main(){
     // vecmat::mat<10,10,float> b1=noinlinewp(),b2=noinlinewp();
     // cout<<b1[1][1]<<b2[2][2]<<endl;
-    vecmat::vec<3,float> a({1,2,3});
-    cout<<a.w()<<endl;
+    // vecmat::vec<3,float> a({1,2,3});
+    // cout<<a.w()<<endl;
     // a[0]=1;
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;

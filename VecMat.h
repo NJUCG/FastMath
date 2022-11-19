@@ -73,6 +73,22 @@ namespace vecmat{
             return a[3];
         }
         vec(){}
+        vec(T x){
+            static_assert(N>0,"too many argument");
+            a[0]=x;
+        }
+        vec(T x,T y){
+            static_assert(N>1,"too many argument");
+            a[0]=x; a[1]=y;
+        }        
+        vec(T x,T y,T z){
+            static_assert(N>2,"too many argument");
+            a[0]=x; a[1]=y; a[2]=z;
+        }        
+        vec(T x,T y,T z,T w){
+            static_assert(N>3,"too many argument");
+            a[0]=x; a[1]=y; a[2]=z; a[3]=w;
+        }          
         vec(const T *initarr){memcpy(a,initarr,sizeof(T)*N);}
         //为了效率暂时不考虑li.size()<N的情况（此时会复制进不可知的值）
         vec(std::initializer_list<T> li){
@@ -189,10 +205,12 @@ namespace vecmat{
         return a.dot(b);
     } 
 
-    // template<typename T> 
-    // inline T cross(const vec<3,T> &a, const vec<3,T> &b){
-
-    // }
+    template<typename T> 
+    inline vec<3,T> cross(const vec<3,T> &a, const vec<3,T> &b){
+        return vec<3,T>(a[1] * b[2] - b[1] * a[2],
+                a[2] * b[0] - b[2] * a[0],
+                a[0] * b[1] - b[0] * a[1]);
+    }
     
     //目前正确性tested，对于n=4速度与eigen基本相同
     
