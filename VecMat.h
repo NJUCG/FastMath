@@ -1,10 +1,13 @@
-#include<cstdlib>
-#include<cstdint>
-#include<cstring>
-#include<cstdio>
-#include<cmath>
-#include<iostream>
-#include<initializer_list>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+#include <iostream>
+#include <initializer_list>
+#include <type_traits>
+
+
 namespace vecmat{
     struct float44{
         float a[4][4];
@@ -53,6 +56,22 @@ namespace vecmat{
         static constexpr vec zero(){vec r; memset(r.a,0,sizeof(r.a)); return r;}
         static constexpr vec fill(T x){vec r; for(int i=0;i<N;++i) r.a[i]=x; return r;}
 
+        constexpr T x(){
+            static_assert(N>0,"out of bound");
+            return a[0];
+        }
+        constexpr T y(){
+            static_assert(N>1,"out of bound");
+            return a[1];
+        }
+        constexpr T z(){
+            static_assert(N>2,"out of bound");
+            return a[2];
+        }
+        constexpr T w(){
+            static_assert(N>3,"out of bound");
+            return a[3];
+        }
         vec(){}
         vec(const T *initarr){memcpy(a,initarr,sizeof(T)*N);}
         //为了效率暂时不考虑li.size()<N的情况（此时会复制进不可知的值）
@@ -63,11 +82,17 @@ namespace vecmat{
         inline const T& operator[](int x)const{return a[x];}
         
         //欧几里得长度，2范数
-        constexpr T len(){
+        constexpr T len() const{
             T rt=0;
             for(int i=0;i<N;++i)
                 rt += a[i] * a[i];
             return std::sqrt(rt);
+        }
+
+        constexpr T dot(const vec &o) const{
+            T ret=0;
+            for(int i=0;i<N;++i) ret+=a[i]*o[i];
+            return ret;            
         }
 
         void debug_print(char ed='\n'){
@@ -158,14 +183,26 @@ namespace vecmat{
     VSASSIGN_OP_DEF_HELPER(*=)
     VSASSIGN_OP_DEF_HELPER(/=)
     #undef VSASSIGN_OP_DEF_HELPER    
+
+    template<uint32_t N,typename T> 
+    inline T dot(const vec<N,T> &a, const vec<N,T> &b){
+        return a.dot(b);
+    } 
+
+    // template<typename T> 
+    // inline T cross(const vec<3,T> &a, const vec<3,T> &b){
+
+    // }
     
     //目前正确性tested，对于n=4速度与eigen基本相同
     
-    //下面的还没测试过。
     //TODO 测试 & 是否确定complie time & 好用的构造函数
 
     //对于zero scalar等，不是complie time const直接复制，而是当场执行，但是可能这样反而更快（只要xmm一直store，无需load一下store一下）
     //暂定：构造函数对于泛型用初始化列表（即{a,b,c}），234的特化则可加上(a,b,c)的形式
+
+
+    //目前44f正确性tested，对于44f速度与eigen基本相同
 
     //N*M矩阵
     template<uint32_t N,uint32_t M,typename T>
@@ -214,6 +251,14 @@ namespace vecmat{
         mat(std::initializer_list< vec<M,T> > li){
             for(int i=0;i<N;++i)
                 rows[i]=*(li.begin()+i);
+        }
+
+        constexpr mat<M,N,T> transpose(){
+            mat<M,N,T> m;
+            for(int i=0;i<M;++i)
+                for(int j=0;j<N;++j)
+                    m[i][j]=rows[j][i];
+            return m;
         }
 
         void debug_print(){
@@ -293,6 +338,7 @@ namespace vecmat{
     #undef MSASSIGN_OP_DEF_HELPER  
 
 
+    //目前44f正确性tested，对于44f速度与eigen基本相同
 
 
 

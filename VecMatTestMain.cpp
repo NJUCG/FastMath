@@ -22,7 +22,7 @@ template<typename T> T calc_err(T a,T b){
 
 
 
-#define tmp_test_n 4
+#define tmp_test_n 5
 #define tmp_test_m 4
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
@@ -65,6 +65,9 @@ struct vecei{
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     }
+    float operator *(const vecei &o){
+        return vec.dot(o.vec); 
+    } 
 };
 struct vecmy{
     vecmat::vec<tmp_test_n,float> vec;
@@ -77,11 +80,14 @@ struct vecmy{
         for(int i=0;i<tmp_test_n;++i)
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
+    } 
+    float operator *(const vecmy &o){
+        return vecmat::dot(vec,o.vec);
     }    
 };
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
-        if(calc_err(a.vec[i],b.vec[i])>1e-5) return false; \
+        if(calc_err(a.vec[i],b.vec[i])>1e-1) return false; \
     return true;}
 
 bool operator ==(vecei &a,vecmy &b) equal_impl
@@ -116,6 +122,9 @@ struct matmy{
     float val(int i,int j){
         return vec[i][j];
     }
+    // matmy operator *(const matmy &o){
+        
+    // }
     // void print(){
     //     printf(" [vecmy](");
     //     for(int i=0;i<tmp_test_n;++i)
@@ -127,7 +136,7 @@ struct matmy{
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
         for(int j=0;j<tmp_test_m;++j) \
-        if(calc_err(a.val(i,j),b.val(i,j))>1e-5) return false; \
+        if(calc_err(a.val(i,j),b.val(i,j))>1e-3) return false; \
     return true;}
 
 bool operator ==(matei &a,matmy &b) equal_impl
@@ -148,14 +157,16 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].vec=in1[i].vec testop in2[i].val(0,0); \
+        out[i].vec[0]=in1[i] * in2[i]; \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int i=0;i<MAX_DATA_N;++i)
             if(!(eout[i]==mout[i])){
-                // eout[i].print();
-                // mout[i].print();
-                // fflush(stdout);
+                ein1[i].print();
+                ein2[i].print();
+                eout[i].print();
+                mout[i].print();
+                fflush(stdout);
                 assert(0);
             }
     }
@@ -165,7 +176,7 @@ struct test_tmp{
             for(int t1=0;t1<rd;++t1){
                 pre(ein1) pre(ein2)
                 pre(min1) pre(min2)
-                if(!(t1&1)){ //消除先后顺序造成的cache影响
+                if((t1&1)){ //消除先后顺序造成的cache影响
                     run_op(ein1,ein2,eout,time_eid);
                     run_op(min1,min2,mout,time_myd);
                 }
@@ -182,7 +193,8 @@ struct test_tmp{
     }
 };
 
-test_tmp<matei,matmy> dft;
+test_tmp<vecei,vecmy> dft;
+// test_tmp<matei,matmy> dft;
 
 // __attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
 //     vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
@@ -192,20 +204,28 @@ test_tmp<matei,matmy> dft;
 int main(){
     // vecmat::mat<10,10,float> b1=noinlinewp(),b2=noinlinewp();
     // cout<<b1[1][1]<<b2[2][2]<<endl;
-    // vecmat::vec<30,float> a;
-    // cout<<a[4]<<endl;
+    vecmat::vec<3,float> a({1,2,3});
+    cout<<a.w()<<endl;
     // a[0]=1;
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
-    // vecmat::mat<4,4,float> b1(
+    // vecmat::mat<3,4,float> b1(
     // {
     //     vecmat::vec4f({1,2,3,4}),
     //     vecmat::vec4f({2,2,3,4}),
     //     vecmat::vec4f({3,2,3,4}),
-    //     vecmat::vec4f({4,2,3,4})
-    // }
-    // );
+    // });
+    // b1.transpose().debug_print();
+
+    // int a=0;
+    // cout<<((a+=1)+=1)<<endl;
+    // cout<<a<<endl;
     // b1.debug_print();
+
+    // Eigen::Vector3f a(4,5,6),b(1,2,3);
+    // a = a.cwiseProduct(b);
+    // cout<<a[0]<<endl;
+
     dft.test();
 }
