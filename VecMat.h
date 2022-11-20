@@ -260,6 +260,22 @@ namespace vecmat{
         inline const vec<M,T>& operator[](int x)const{return rows[x];}
 
         mat(){}
+        mat(vec<M,T> x){
+            static_assert(N>0,"too many argument");
+            rows[0]=x;
+        }
+        mat(vec<M,T> x,vec<M,T> y){
+            static_assert(N>1,"too many argument");
+            rows[0]=x; rows[1]=y;
+        }        
+        mat(vec<M,T> x,vec<M,T> y,vec<M,T> z){
+            static_assert(N>2,"too many argument");
+            rows[0]=x; rows[1]=y; rows[2]=z;
+        }        
+        mat(vec<M,T> x,vec<M,T> y,vec<M,T> z,vec<M,T> w){
+            static_assert(N>3,"too many argument");
+            rows[0]=x; rows[1]=y; rows[2]=z; rows[3]=w;
+        }      
         //为了效率暂时不考虑li.size()<N的情况（此时会复制进不可知的值）
         mat(std::initializer_list<T> li){
             for(int i=0;i<N;++i)

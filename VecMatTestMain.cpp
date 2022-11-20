@@ -214,13 +214,11 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
-    // vecmat::mat<3,4,float> b1(
-    // {
-    //     vecmat::vec4f({1,2,3,4}),
-    //     vecmat::vec4f({2,2,3,4}),
-    //     vecmat::vec4f({3,2,3,4}),
-    // });
-    // b1.transpose().debug_print();
+    vecmat::mat<2,4,float> b1(
+        vecmat::vec4f(1,6,3,4),
+        vecmat::vec4f(2,6,3,4)
+    );
+    b1.transpose().debug_print();
 
     // int a=0;
     // cout<<((a+=1)+=1)<<endl;
