@@ -130,6 +130,7 @@ namespace vecmat{
     // }
 
 
+
     //只加减，cowise product另做
     //正确性tested，对于n=4速度与eigen基本相同
     #define VVBINARY_OP_DEF_HELPER(op) \
@@ -199,18 +200,6 @@ namespace vecmat{
     VSASSIGN_OP_DEF_HELPER(*=)
     VSASSIGN_OP_DEF_HELPER(/=)
     #undef VSASSIGN_OP_DEF_HELPER    
-
-    template<uint32_t N,typename T> 
-    inline T dot(const vec<N,T> &a, const vec<N,T> &b){
-        return a.dot(b);
-    } 
-
-    template<typename T> 
-    inline vec<3,T> cross(const vec<3,T> &a, const vec<3,T> &b){
-        return vec<3,T>(a[1] * b[2] - b[1] * a[2],
-                a[2] * b[0] - b[2] * a[0],
-                a[0] * b[1] - b[0] * a[1]);
-    }
     
     //目前正确性tested，对于n=4速度与eigen基本相同
     
@@ -294,6 +283,19 @@ namespace vecmat{
                     m[i][j]=rows[j][i];
             return m;
         }
+        constexpr T dot(const mat &o) const{
+            T ret=0;
+            for(int i=0;i<N;++i) ret+=rows[i].dot(o[i]);
+            return ret;
+        }
+
+        constexpr T norm2() const{
+            T ret=0;
+            for(int i=0;i<N;++i)
+                for(int j=0;j<M;++j)
+                    ret += rows[i][j] * rows[i][j];
+            return std::sqrt(ret);
+        }
 
         void debug_print(){
             printf("[mat<%d,%d>]\n",N,M);
@@ -371,10 +373,35 @@ namespace vecmat{
     MSASSIGN_OP_DEF_HELPER(/=)
     #undef MSASSIGN_OP_DEF_HELPER  
 
-
     //目前44f正确性tested，对于44f速度与eigen基本相同
 
+    template<uint32_t N,typename T> 
+    inline T dot(const vec<N,T> &a, const vec<N,T> &b){
+        return a.dot(b);
+    } 
 
+    template<uint32_t N,uint32_t M,typename T> 
+    inline T dot(const mat<N,M,T> &a, const mat<N,M,T> &b){
+        return a.dot(b);
+    } 
+
+    template<typename T> 
+    inline vec<3,T> cross(const vec<3,T> &a, const vec<3,T> &b){
+        return vec<3,T>(a[1] * b[2] - b[1] * a[2],
+                a[2] * b[0] - b[2] * a[0],
+                a[0] * b[1] - b[0] * a[1]);
+    }
+
+
+
+
+    template<uint32_t N,uint32_t M,typename T>
+    inline vec<N,T> operator *(mat<N,M,T>& m,vec<M,T>& v){
+        vec<N,T> rt;
+        for(int i=0;i<N;++i)
+            rt[i] = dot(m.rows[i],v);
+        return rt;
+    }
 
 
 

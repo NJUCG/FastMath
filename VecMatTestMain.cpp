@@ -218,7 +218,12 @@ int main(){
         vecmat::vec4f(1,6,3,4),
         vecmat::vec4f(2,6,3,4)
     );
+    cout<<b1.norm2()<<endl;
     b1.transpose().debug_print();
+
+    // vecmat::vec4f aa(1,2,3,4);
+    // vecmat::vec3f bb(1,2,3);
+    // cout<<bb.dot(aa);
 
     // int a=0;
     // cout<<((a+=1)+=1)<<endl;
