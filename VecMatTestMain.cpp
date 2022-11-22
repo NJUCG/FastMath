@@ -16,8 +16,9 @@ class my_rd_real_eng{
             int sd=time(NULL)):e(sd),u(l,r){}
     T get_rd_val(){return u(e);}
 };
-template<typename T> T calc_err(T a,T b){
-    return min(abs(a-b),abs(a-b)/max((T)1,max(abs(a),abs(b))));
+
+template<typename T> T calc_err(T a,T b,T referr=0){
+    return min(abs(a-b),abs(a-b)/max((T)1,max(abs(a),max(abs(b),referr))));
 }
 
 
@@ -26,6 +27,9 @@ template<typename T> T calc_err(T a,T b){
 #define tmp_test_m 3
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
+my_rd_real_eng<float> dft_rd_eg2(-1000.0,1000.0,12345);
+my_rd_real_eng<float> dft_rd_eg3(-1000.0,1000.0,12345);
+
 struct eigen_wpmat44{
 	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
     auto operator *(const eigen_wpmat44 &o){
@@ -38,7 +42,6 @@ struct eigen_wpmat44{
                 matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
     }
 };
-my_rd_real_eng<float> dft_rd_eg2(-1000.0,1000.0,12345);
 struct my_wpmat44{
     vecmat::float44 matrix=vecmat::float44();
     auto operator *(const my_wpmat44 &o){
@@ -67,9 +70,9 @@ struct vecei{
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     }
-    vecei operator *(const vecei &o){
-        return vecei(vec.cross(o.vec)); 
-    } 
+    // vecei operator *(const vecei &o){
+    //     return vecei(vec.cross(o.vec)); 
+    // } 
 };
 struct vecmy{
     vecmat::vec<tmp_test_n,float> vec;
@@ -85,9 +88,9 @@ struct vecmy{
             printf("%c%.4lf",i==0?'\0':',',vec[i]);
         printf(")  \n");
     } 
-    vecmy operator *(const vecmy &o){
-        return vecmy(vecmat::cross(vec,o.vec)); 
-    }    
+    // vecmy operator *(const vecmy &o){
+        // return vecmy(vecmat::cross(vec,o.vec)); 
+    // }    
 };
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
@@ -101,6 +104,8 @@ bool operator ==(vecmy &a,vecei &b) equal_impl
 
 struct matei{
     Eigen::Matrix<float,tmp_test_n,tmp_test_m> vec;
+    matei(){};
+    matei(Eigen::Matrix<float,tmp_test_n,tmp_test_m> _vec):vec{_vec}{}
     void rdinit(){
         for(int i=0;i<tmp_test_n;++i)
             for(int j=0;j<tmp_test_m;++j)
@@ -109,15 +114,24 @@ struct matei{
     float val(int i,int j){
         return vec.coeff(i,j);
     }
-    // void print(){
-    //     printf(" [vecei](");
-    //     for(int i=0;i<tmp_test_n;++i)
-    //         printf("%c%.4lf",i==0?'\0':',',vec[i]);
-    //     printf(")  \n");
-    // }
+    void print(){
+        printf(" [vecei]{\n");
+        for(int i=0;i<tmp_test_n;++i){
+            printf("(");        
+            for(int j=0;j<tmp_test_m;++j)
+                printf("%c%.4lf",i==0?'\0':',',vec.coeff(i,j));
+            printf(")\n");
+        }
+        printf("}  \n");
+    }
+
 };
+
+
 struct matmy{
     vecmat::mat<tmp_test_n,tmp_test_m,float> vec;
+    matmy(){};
+    matmy(vecmat::mat<tmp_test_n,tmp_test_m,float> _vec):vec{_vec}{}
     void rdinit(){
         for(int i=0;i<tmp_test_n;++i)
             for(int j=0;j<tmp_test_m;++j)
@@ -126,32 +140,64 @@ struct matmy{
     float val(int i,int j){
         return vec[i][j];
     }
+    void print(){
+        vec.debug_print();
+    }
     // matmy operator *(const matmy &o){
         
-    // }
-    // void print(){
-    //     printf(" [vecmy](");
-    //     for(int i=0;i<tmp_test_n;++i)
-    //         printf("%c%.4lf",i==0?'\0':',',vec[i]);
-    //     printf(")  \n");
-    // }    
+    // }  
 };
+struct matmy2{
+    vecmat::mat<tmp_test_n,tmp_test_m,float> vec;
+    matmy2(){};
+    matmy2(vecmat::mat<tmp_test_n,tmp_test_m,float> _vec):vec{_vec}{}
+    void rdinit(){
+        for(int i=0;i<tmp_test_n;++i)
+            for(int j=0;j<tmp_test_m;++j)
+                vec[i][j]=dft_rd_eg3.get_rd_val();
+    }    
+    float val(int i,int j){
+        return vec[i][j];
+    }
+    void print(){
+        vec.debug_print();
+    }
+};
+__attribute_noinline__  matei operator *(const matei &a,const matei &b){
+    return matei(a.vec*b.vec);
+}
+// matmy operator *(const matmy &a,const matmy &b){
+//     return matmy(vecmat::mult1(a.vec,b.vec));
+// }
+// matmy2 operator *(const matmy2 &a,const matmy2 &b){
+//     return matmy2(vecmat::mult2(a.vec,b.vec));
+// }
+__attribute_noinline__  matmy operator *(const matmy &a,const matmy &b){
+    return matmy(a.vec*b.vec);
+}
+__attribute_noinline__  matmy2 operator *(const matmy2 &a,const matmy2 &b){
+    return matmy2(a.vec*b.vec);
+}
 
+
+float err_ref = 0;
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
         for(int j=0;j<tmp_test_m;++j) \
-        if(calc_err(a.val(i,j),b.val(i,j))>1e-3) return false; \
+        if(calc_err(a.val(i,j),b.val(i,j),err_ref)>1e-2) return false; \
     return true;}
 
 bool operator ==(matei &a,matmy &b) equal_impl
 bool operator ==(matmy &a,matei &b) equal_impl
-#undef equal_impl
-#undef tmp_test_m
-#undef tmp_test_n
+bool operator ==(matmy &a,matmy2 &b) equal_impl
+bool operator ==(matmy2 &a,matmy &b) equal_impl
 
-#define MAX_DATA_N 20000005
+#undef equal_impl
+
+
+#define MAX_DATA_N 8000005
 // #define MAX_DIFF_N 20
-#define testop /=
+#define testop *
 template<typename T1,typename T2>
 struct test_tmp{
     T1 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
@@ -164,22 +210,28 @@ struct test_tmp{
         out[i]=in1[i] * in2[i]; \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
-        for(int i=0;i<MAX_DATA_N;++i)
-            if(!(eout[i]==mout[i])){
-                ein1[i].print();
-                ein2[i].print();
-                eout[i].print();
-                mout[i].print();
+        for(int t=0;t<MAX_DATA_N;++t){
+            err_ref=0;
+            for(int i=0;i<tmp_test_n;++i)
+                for(int j=0;j<tmp_test_m;++j)
+                    err_ref=max(err_ref,max(abs(ein1[t].val(i,j)),abs(ein2[t].val(i,j))));
+            if(!(eout[t]==mout[t])){
+                ein1[t].print();
+                ein2[t].print();
+                eout[t].print();
+                mout[t].print();
                 fflush(stdout);
                 assert(0);
             }
+        }
     }
     void test(int rd=10){
         double time_ei=0,time_my=0,time_eid=0,time_myd=0;  
             double tmean_rel_err_d=0,tmean_rel_err_o=0;
             for(int t1=0;t1<rd;++t1){
+                err_ref=0;
                 pre(ein1) pre(ein2)
-                pre(min1) pre(min2)
+                pre(min1) pre(min2)                
                 if((t1&1)){ //消除先后顺序造成的cache影响
                     run_op(ein1,ein2,eout,time_eid);
                     run_op(min1,min2,mout,time_myd);
@@ -196,8 +248,9 @@ struct test_tmp{
         printf("[TOTAL] Time ei: %.6lf  Time my: %.6lf\n",time_ei,time_my);
     }
 };
-
-test_tmp<vecei,vecmy> dft;
+#undef tmp_test_m
+#undef tmp_test_n
+test_tmp<matei,matmy> dft;
 // test_tmp<matei,matmy> dft;
 
 // __attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
@@ -214,10 +267,13 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
-    vecmat::mat<2,4,float> b1(
-        vecmat::vec4f(1,6,3,4),
-        vecmat::vec4f(2,6,3,4)
+    vecmat::mat<3,3,float> b1(
+        vecmat::vec3f(1,6,3),
+        vecmat::vec3f(2,6,3),
+        vecmat::vec3f(4,5,6)
     );
+    // cout<<sizeof(vecmat::mat<3,3,float>)<<endl;
+    b1.clear();
     cout<<b1.norm2()<<endl;
     b1.transpose().debug_print();
 

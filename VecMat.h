@@ -53,6 +53,7 @@ namespace vecmat{
     template<uint32_t N,typename T>
     struct vec{
         T a[N];
+        inline void clear(){memset(a,0,sizeof(a));}
         static constexpr vec zero(){vec r; memset(r.a,0,sizeof(r.a)); return r;}
         static constexpr vec fill(T x){vec r; for(int i=0;i<N;++i) r.a[i]=x; return r;}
 
@@ -111,7 +112,7 @@ namespace vecmat{
             return ret;            
         }
 
-        void debug_print(char ed='\n'){
+        void debug_print(char ed='\n') const{
             printf("[vec<%d>](",N);
             for(int i=0;i<N;++i){
                 std::cout<<(i==0?'\0':',')<<a[i];
@@ -216,10 +217,10 @@ namespace vecmat{
     struct mat{
         vec<M,T> rows[N];
 
+        inline void clear(){memset((void *)this,0,sizeof(mat<N,M,T>));}
         static constexpr mat zero(){
             mat m; 
-            for(int i=0;i<N;++i) 
-                m.rows[i]=vec<M,T>::zero(); 
+            m.clear();
             return m;
         }
         static constexpr mat scalar(T x){
@@ -276,7 +277,7 @@ namespace vecmat{
                 rows[i]=*(li.begin()+i);
         }
 
-        constexpr mat<M,N,T> transpose(){
+        constexpr mat<M,N,T> transpose() const{
             mat<M,N,T> m;
             for(int i=0;i<M;++i)
                 for(int j=0;j<N;++j)
@@ -297,7 +298,7 @@ namespace vecmat{
             return std::sqrt(ret);
         }
 
-        void debug_print(){
+        void debug_print() const{
             printf("[mat<%d,%d>]\n",N,M);
             for(int i=0;i<N;++i)
                 rows[i].debug_print('\n');
@@ -396,18 +397,47 @@ namespace vecmat{
 
 
     template<uint32_t N,uint32_t M,typename T>
-    inline vec<N,T> operator *(mat<N,M,T>& m,vec<M,T>& v){
+    inline vec<N,T> operator *(const mat<N,M,T>& m,const vec<M,T>& v){
         vec<N,T> rt;
         for(int i=0;i<N;++i)
             rt[i] = dot(m.rows[i],v);
         return rt;
     }
 
+    // template<uint32_t M,uint32_t K,uint32_t N,typename T>
+    // inline mat<M,N,T> mult1(const mat<M,K,T>& a,const mat<K,N,T>& b){
+    //     mat<M,N,T> rt;
+    //     rt.clear();
+    //     for(int i=0;i<M;++i)
+    //         for(int j=0;j<N;++j)
+    //             for(int k=0;k<K;++k)
+    //                 rt[i][j]+=a[i][k]*b[k][j];
+    //     return rt;
+    // }
 
+    // //n=4 比不过mult1
+    // template<uint32_t M,uint32_t K,uint32_t N,typename T>
+    // inline mat<M,N,T> mult2(const mat<M,K,T>& a,const mat<K,N,T>& b){
+    //     mat<M,N,T> rt;
+    //     rt.clear();
+    //     for(int k=0;k<K;++k)
+    //         for(int i=0;i<M;++i)
+    //             for(int j=0;j<N;++j)
+    //                 rt[i][j]+=a[i][k]*b[k][j];
+    //     return rt;
+    // }
 
-
-
-
+    // 优化TODO，n=4慢2%，n大时比eigen慢，(注意: kij不如ijk)
+    template<uint32_t M,uint32_t K,uint32_t N,typename T>
+    inline mat<M,N,T> operator *(const mat<M,K,T>& a,const mat<K,N,T>& b){
+        mat<M,N,T> rt;
+        rt.clear();
+        for(int i=0;i<M;++i)
+            for(int j=0;j<N;++j)
+                for(int k=0;k<K;++k)
+                    rt[i][j]+=a[i][k]*b[k][j];
+        return rt;
+    }
 
     // typename maker
     #define VECMAT_TYPEDEF_MAKER(T,Tsym) \
