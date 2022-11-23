@@ -23,37 +23,37 @@ template<typename T> T calc_err(T a,T b,T referr=0){
 
 
 
-#define tmp_test_n 3
-#define tmp_test_m 3
+#define tmp_test_n 2
+#define tmp_test_m 4
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
 my_rd_real_eng<float> dft_rd_eg2(-1000.0,1000.0,12345);
 my_rd_real_eng<float> dft_rd_eg3(-1000.0,1000.0,12345);
 
-struct eigen_wpmat44{
-	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
-    auto operator *(const eigen_wpmat44 &o){
-        Eigen::Matrix4f tmp(matrix*o.matrix);
-        return tmp;
-    }
-    void rdinit(){
-        for(int i=0;i<tmp_test_n;++i)
-            for(int j=0;j<tmp_test_n;++j)
-                matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
-    }
-};
-struct my_wpmat44{
-    vecmat::float44 matrix=vecmat::float44();
-    auto operator *(const my_wpmat44 &o){
-        auto tmp(matrix*o.matrix);
-        return tmp;
-    }
-    void rdinit(){
-        for(int i=0;i<tmp_test_n;++i)
-            for(int j=0;j<tmp_test_n;++j)
-                matrix.a[i][j]=dft_rd_eg2.get_rd_val();
-    }
-};
+// struct eigen_wpmat44{
+// 	Eigen::Matrix4f matrix=Eigen::Matrix4f::Identity();
+//     auto operator *(const eigen_wpmat44 &o){
+//         Eigen::Matrix4f tmp(matrix*o.matrix);
+//         return tmp;
+//     }
+//     void rdinit(){
+//         for(int i=0;i<tmp_test_n;++i)
+//             for(int j=0;j<tmp_test_n;++j)
+//                 matrix.coeffRef(i,j)=dft_rd_eg1.get_rd_val();
+//     }
+// };
+// struct my_wpmat44{
+//     vecmat::float44 matrix=vecmat::float44();
+//     auto operator *(const my_wpmat44 &o){
+//         auto tmp(matrix*o.matrix);
+//         return tmp;
+//     }
+//     void rdinit(){
+//         for(int i=0;i<tmp_test_n;++i)
+//             for(int j=0;j<tmp_test_n;++j)
+//                 matrix.a[i][j]=dft_rd_eg2.get_rd_val();
+//     }
+// };
 
 
 struct vecei{
@@ -164,20 +164,36 @@ struct matmy2{
     }
 };
 __attribute_noinline__  matei operator *(const matei &a,const matei &b){
-    return matei(a.vec*b.vec);
+    Eigen::Matrix<float,tmp_test_m,tmp_test_m> tmp=a.vec.transpose()*b.vec;
+    matei tp;
+    for(int i=0;i<tmp_test_n;++i)
+        for(int j=0;j<tmp_test_m;++j)
+            if(i>=tmp_test_m) tp.vec.coeffRef(i,j)=0;
+                else tp.vec.coeffRef(i,j)=tmp.coeff(i,j);    
+    return tp;
+
+    // return matei(a.vec*b.vec);
 }
 // matmy operator *(const matmy &a,const matmy &b){
 //     return matmy(vecmat::mult1(a.vec,b.vec));
 // }
-// matmy2 operator *(const matmy2 &a,const matmy2 &b){
-//     return matmy2(vecmat::mult2(a.vec,b.vec));
+// __attribute_noinline__ matmy2 operator *(const matmy2 &a,const matmy2 &b){
+//     return matmy2(vecmat::mult1(a.vec,b.vec));
 // }
 __attribute_noinline__  matmy operator *(const matmy &a,const matmy &b){
-    return matmy(a.vec*b.vec);
+    vecmat::mat<tmp_test_m,tmp_test_m,float> tmp=a.vec.transpose()*b.vec;
+    matmy tp;
+    for(int i=0;i<tmp_test_n;++i)
+        for(int j=0;j<tmp_test_m;++j)
+            if(i>=tmp_test_m) tp.vec[i][j]=0;
+                else tp.vec[i][j]=tmp[i][j];
+    return tp;
+
+    // return matmy(a.vec*b.vec);
 }
-__attribute_noinline__  matmy2 operator *(const matmy2 &a,const matmy2 &b){
-    return matmy2(a.vec*b.vec);
-}
+// __attribute_noinline__  matmy2 operator *(const matmy2 &a,const matmy2 &b){
+//     return matmy2(a.vec*b.vec);
+// }
 
 
 float err_ref = 0;
@@ -195,7 +211,7 @@ bool operator ==(matmy2 &a,matmy &b) equal_impl
 #undef equal_impl
 
 
-#define MAX_DATA_N 8000005
+#define MAX_DATA_N 4000005
 // #define MAX_DIFF_N 20
 #define testop *
 template<typename T1,typename T2>

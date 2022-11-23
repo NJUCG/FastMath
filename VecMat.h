@@ -427,7 +427,8 @@ namespace vecmat{
     //     return rt;
     // }
 
-    // 优化TODO，n=4慢2%，n大时比eigen慢，(注意: kij不如ijk)
+    // 优化TODO，n大时比eigen慢(注意: kij不如ijk)
+    // N,M,K较小(<=4)时的特化版本见VecMatMult.inl.h (特化版本效率不低于甚至部分优于eigen)
     template<uint32_t M,uint32_t K,uint32_t N,typename T>
     inline mat<M,N,T> operator *(const mat<M,K,T>& a,const mat<K,N,T>& b){
         mat<M,N,T> rt;
@@ -438,6 +439,9 @@ namespace vecmat{
                     rt[i][j]+=a[i][k]*b[k][j];
         return rt;
     }
+
+
+
 
     // typename maker
     #define VECMAT_TYPEDEF_MAKER(T,Tsym) \
@@ -456,3 +460,6 @@ namespace vecmat{
 
     #undef VECMAT_TYPEDEF_MAKER
 }
+
+//提供N,M,K较小(<=4)时矩阵乘法的特化实现(M,K,N各四种取值，共64种)
+#include "VecMatMult.inl.h"
