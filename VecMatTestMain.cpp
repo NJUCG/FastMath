@@ -23,7 +23,7 @@ template<typename T> T calc_err(T a,T b,T referr=0){
 
 
 
-#define tmp_test_n 2
+#define tmp_test_n 4
 #define tmp_test_m 4
 
 my_rd_real_eng<float> dft_rd_eg1(-1000.0,1000.0,12345);
@@ -94,7 +94,7 @@ struct vecmy{
 };
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
-        if(calc_err(a.vec[i],b.vec[i])>1e-1) return false; \
+        if(calc_err(a.vec[i],b.vec[i])>5e-1) return false; \
     return true;}
 
 bool operator ==(vecei &a,vecmy &b) equal_impl
@@ -114,13 +114,16 @@ struct matei{
     float val(int i,int j){
         return vec.coeff(i,j);
     }
+    float& ref(int i,int j){
+        return vec.coeffRef(i,j);
+    }    
     void print(){
         printf(" [vecei]{\n");
         for(int i=0;i<tmp_test_n;++i){
-            printf("(");        
+            // printf("(");        
             for(int j=0;j<tmp_test_m;++j)
-                printf("%c%.4lf",i==0?'\0':',',vec.coeff(i,j));
-            printf(")\n");
+                printf("%c%lf",j==0?'\0':' ',vec.coeff(i,j));
+            printf("\n");
         }
         printf("}  \n");
     }
@@ -140,6 +143,9 @@ struct matmy{
     float val(int i,int j){
         return vec[i][j];
     }
+    float& ref(int i,int j){
+        return vec[i][j];
+    } 
     void print(){
         vec.debug_print();
     }
@@ -200,7 +206,7 @@ float err_ref = 0;
 #define equal_impl \
     {for(int i=0;i<tmp_test_n;++i) \
         for(int j=0;j<tmp_test_m;++j) \
-        if(calc_err(a.val(i,j),b.val(i,j),err_ref)>1e-2) return false; \
+        if(calc_err(a.val(i,j),b.val(i,j),err_ref)>1e-1) return false; \
     return true;}
 
 bool operator ==(matei &a,matmy &b) equal_impl
@@ -213,7 +219,7 @@ bool operator ==(matmy2 &a,matmy &b) equal_impl
 
 #define MAX_DATA_N 4000005
 // #define MAX_DIFF_N 20
-#define testop *
+#define testop +
 template<typename T1,typename T2>
 struct test_tmp{
     T1 ein1[MAX_DATA_N],ein2[MAX_DATA_N],eout[MAX_DATA_N];
@@ -223,14 +229,14 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i]=in1[i] * in2[i]; \
+        out[i].ref(0,0)=in1[i].vec.determinant(); \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         for(int t=0;t<MAX_DATA_N;++t){
             err_ref=0;
-            for(int i=0;i<tmp_test_n;++i)
-                for(int j=0;j<tmp_test_m;++j)
-                    err_ref=max(err_ref,max(abs(ein1[t].val(i,j)),abs(ein2[t].val(i,j))));
+            // for(int i=0;i<tmp_test_n;++i)
+            //     for(int j=0;j<tmp_test_m;++j)
+            //         err_ref=max(err_ref,max(abs(ein1[t].val(i,j)),abs(ein2[t].val(i,j))));
             if(!(eout[t]==mout[t])){
                 ein1[t].print();
                 ein2[t].print();
@@ -269,9 +275,8 @@ struct test_tmp{
 test_tmp<matei,matmy> dft;
 // test_tmp<matei,matmy> dft;
 
-// __attribute_noinline__ vecmat::mat<10,10,float> noinlinewp(){
-//     vecmat::mat<10,10,float> a=vecmat::mat<10,10,float>::zero();
-//     return a;
+// __attribute_noinline__ float noinlinewp(vecmat::mat<2,2,float> a){
+//     return a.determinant();
 // }
 
 int main(){
@@ -283,16 +288,28 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
-    vecmat::mat<3,3,float> b1(
-        vecmat::vec3f(1,6,3),
-        vecmat::vec3f(2,6,3),
-        vecmat::vec3f(4,5,6)
-    );
-    // cout<<sizeof(vecmat::mat<3,3,float>)<<endl;
-    b1.clear();
-    cout<<b1.norm2()<<endl;
-    b1.transpose().debug_print();
+    // int t=0;
+    // cin>>t;
+    // vecmat::mat<2,2,float> b11(
+    //     vecmat::vec2f(t,t),
+    //     vecmat::vec2f(t,t)
+    // );
+    // cout<<noinlinewp(b11)<<endl;
 
+    vecmat::mat<4,4,float> b1(
+        vecmat::vec4f(212.015869,-650.217773,-210.286865,-291.177490),
+        vecmat::vec4f(179.261475,848.008667,482.058350,-44.548706),
+        vecmat::vec4f(-729.548950,470.537598,325.456543,-52.342773),
+        vecmat::vec4f(274.811157,750.875732,-32.796326,792.358398)
+    );
+    cout<<b1.determinant()<<endl;
+
+    // cout<<sizeof(vecmat::mat<3,3,float>)<<endl;
+    // b1.clear();
+    // cout<<b1[0].x()<<endl;
+    // cout<<b1.norm2()<<endl;
+    // b1.transpose().debug_print();
+    // cout<<b1.determinant()<<endl;
     // vecmat::vec4f aa(1,2,3,4);
     // vecmat::vec3f bb(1,2,3);
     // cout<<bb.dot(aa);
@@ -306,5 +323,5 @@ int main(){
     // a = a.cwiseProduct(b);
     // cout<<a[0]<<endl;
 
-    dft.test();
+    // dft.test();
 }

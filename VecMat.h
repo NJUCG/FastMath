@@ -99,7 +99,7 @@ namespace vecmat{
         inline const T& operator[](int x)const{return a[x];}
         
         //欧几里得长度，2范数
-        constexpr T len() const{
+        constexpr auto len() const{
             T rt=0;
             for(int i=0;i<N;++i)
                 rt += a[i] * a[i];
@@ -290,12 +290,44 @@ namespace vecmat{
             return ret;
         }
 
-        constexpr T norm2() const{
+        constexpr auto norm2() const{
             T ret=0;
             for(int i=0;i<N;++i)
                 for(int j=0;j<M;++j)
                     ret += rows[i][j] * rows[i][j];
             return std::sqrt(ret);
+        }
+        
+        constexpr T determinant() const{
+            static_assert(N==M,"only available in square matrix");
+            static_assert(std::is_floating_point<T>::value,"do not support nonfloating-point type");
+            static_assert(N>=1||N<=4,"do not support this size");
+            if constexpr(N==1){
+                return rows[0][0];
+            } else if constexpr(N==2){
+                return rows[0][0] * rows[1][1] - rows[1][0] * rows[0][1];;
+            } else if constexpr(N==3){
+                return rows[0][0] * (rows[1][1] * rows[2][2] - rows[2][1] * rows[1][2]) -
+                       rows[1][0] * (rows[0][1] * rows[2][2] - rows[2][1] * rows[0][2]) +
+                       rows[2][0] * (rows[0][1] * rows[1][2] - rows[1][1] * rows[0][2]); 
+            } else {//N==4  from GLM
+                float SubFactor00 = rows[2][2] * rows[3][3] - rows[3][2] * rows[2][3];
+                float SubFactor01 = rows[2][1] * rows[3][3] - rows[3][1] * rows[2][3];
+                float SubFactor02 = rows[2][1] * rows[3][2] - rows[3][1] * rows[2][2];
+                float SubFactor03 = rows[2][0] * rows[3][3] - rows[3][0] * rows[2][3];
+                float SubFactor04 = rows[2][0] * rows[3][2] - rows[3][0] * rows[2][2];
+                float SubFactor05 = rows[2][0] * rows[3][1] - rows[3][0] * rows[2][1];
+
+                vec<4,float> DetCof(
+                    + (rows[1][1] * SubFactor00 - rows[1][2] * SubFactor01 + rows[1][3] * SubFactor02),
+                    - (rows[1][0] * SubFactor00 - rows[1][2] * SubFactor03 + rows[1][3] * SubFactor04),
+                    + (rows[1][0] * SubFactor01 - rows[1][1] * SubFactor03 + rows[1][3] * SubFactor05),
+                    - (rows[1][0] * SubFactor02 - rows[1][1] * SubFactor04 + rows[1][2] * SubFactor05));
+
+                return
+                    rows[0][0] * DetCof[0] + rows[0][1] * DetCof[1] +
+                    rows[0][2] * DetCof[2] + rows[0][3] * DetCof[3];
+            }
         }
 
         void debug_print() const{
