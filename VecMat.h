@@ -48,7 +48,6 @@ namespace vecmat{
     }
 
 
-    //目前正确性tested，对于n=4速度与eigen基本相同
     
     template<uint32_t N,typename T>
     struct vec{
@@ -138,12 +137,6 @@ namespace vecmat{
 
 
 
-    // template<>
-    // void vec<4,float>::spec(int x){
-    //     printf();
-
-    // }
-
 
 
     //只加减，cowise product另做
@@ -216,15 +209,6 @@ namespace vecmat{
     VSASSIGN_OP_DEF_HELPER(/=)
     #undef VSASSIGN_OP_DEF_HELPER    
     
-    //目前正确性tested，对于n=4速度与eigen基本相同
-    
-    //TODO 测试 & 是否确定complie time & 好用的构造函数
-
-    //对于zero scalar等，不是complie time const直接复制，而是当场执行，但是可能这样反而更快（只要xmm一直store，无需load一下store一下）
-    //暂定：构造函数对于泛型用初始化列表（即{a,b,c}），234的特化则可加上(a,b,c)的形式
-
-
-    //目前44f正确性tested，对于44f速度与eigen基本相同
 
     //N*M矩阵
     template<uint32_t N,uint32_t M,typename T>
@@ -528,8 +512,6 @@ namespace vecmat{
     MSASSIGN_OP_DEF_HELPER(*=)
     MSASSIGN_OP_DEF_HELPER(/=)
     #undef MSASSIGN_OP_DEF_HELPER  
-
-    //目前44f正确性tested，对于44f速度与eigen基本相同
 
     template<uint32_t N,typename T> 
     inline T dot(const vec<N,T> &a, const vec<N,T> &b){

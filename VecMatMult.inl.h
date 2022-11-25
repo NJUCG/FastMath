@@ -1,4 +1,4 @@
-//仅用于VecMat.h中#inline，提供N,M,K较小(<=4)时矩阵乘法的特化实现(M,K,N各四种取值，共64种)
+//仅用于VecMat.h中#include，提供N,M,K较小(<=4)时矩阵乘法的特化实现(M,K,N各四种取值，共64种)
 
 namespace vecmat{
 
