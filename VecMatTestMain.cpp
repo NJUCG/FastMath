@@ -117,6 +117,9 @@ struct matei{
     float& ref(int i,int j){
         return vec.coeffRef(i,j);
     }    
+    float det(){
+        return vec.determinant();
+    }
     void print(){
         printf(" [vecei]{\n");
         for(int i=0;i<tmp_test_n;++i){
@@ -146,6 +149,9 @@ struct matmy{
     float& ref(int i,int j){
         return vec[i][j];
     } 
+    float det(){
+        return vec.determinant();
+    }
     void print(){
         vec.debug_print();
     }
@@ -165,6 +171,12 @@ struct matmy2{
     float val(int i,int j){
         return vec[i][j];
     }
+    float& ref(int i,int j){
+        return vec[i][j];
+    } 
+    // float det(){
+    //     return vec.det2();
+    // }
     void print(){
         vec.debug_print();
     }
@@ -229,23 +241,29 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].ref(0,0)=in1[i].vec.determinant(); \
+        out[i].vec=in1[i].vec.inverse(); \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
+        double err=0;
         for(int t=0;t<MAX_DATA_N;++t){
-            err_ref=0;
+            // err_ref=0;
             // for(int i=0;i<tmp_test_n;++i)
             //     for(int j=0;j<tmp_test_m;++j)
             //         err_ref=max(err_ref,max(abs(ein1[t].val(i,j)),abs(ein2[t].val(i,j))));
-            if(!(eout[t]==mout[t])){
-                ein1[t].print();
-                ein2[t].print();
-                eout[t].print();
-                mout[t].print();
-                fflush(stdout);
-                assert(0);
-            }
+            // if(!(eout[t]==mout[t])){
+            //     ein1[t].print();
+            //     min1[t].print();
+            //     eout[t].print();
+            //     mout[t].print();
+            //     fflush(stdout);
+            //     assert(0);
+            // }
+            err_ref=0;
+            for(int i=0;i<tmp_test_n;++i)
+                for(int j=0;j<tmp_test_m;++j)
+                    err+=calc_err(eout[t].val(i,j),mout[t].val(i,j));
         }
+        printf("%.10lf %.10lf\n",err,err/(tmp_test_m*tmp_test_n*MAX_DATA_N));
     }
     void test(int rd=10){
         double time_ei=0,time_my=0,time_eid=0,time_myd=0;  
@@ -296,13 +314,19 @@ int main(){
     // );
     // cout<<noinlinewp(b11)<<endl;
 
-    vecmat::mat<4,4,float> b1(
-        vecmat::vec4f(212.015869,-650.217773,-210.286865,-291.177490),
-        vecmat::vec4f(179.261475,848.008667,482.058350,-44.548706),
-        vecmat::vec4f(-729.548950,470.537598,325.456543,-52.342773),
-        vecmat::vec4f(274.811157,750.875732,-32.796326,792.358398)
-    );
-    cout<<b1.determinant()<<endl;
+    // vecmat::mat<4,4,float> b1(
+    //     vecmat::vec4f(1,2,3,4),
+    //     vecmat::vec4f(5,6,0,0),
+    //     vecmat::vec4f(9,0,11,12),
+    //     vecmat::vec4f(13,14,0,16)
+    // );
+    // // vecmat::mat33f b1(
+    // //     vecmat::vec3f(1,2,5),
+    // //     vecmat::vec3f(5,6,7),
+    // //     vecmat::vec3f(9,10,11)   );
+
+    // cout<<b1.determinant()<<endl;
+    // b1.inverse().debug_print();
 
     // cout<<sizeof(vecmat::mat<3,3,float>)<<endl;
     // b1.clear();
@@ -323,5 +347,5 @@ int main(){
     // a = a.cwiseProduct(b);
     // cout<<a[0]<<endl;
 
-    // dft.test();
+    dft.test();
 }

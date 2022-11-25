@@ -112,6 +112,20 @@ namespace vecmat{
             return ret;            
         }
 
+        constexpr vec cwiseMult(const vec &o) const{
+            vec<N,T> r; 
+            for(int i=0;i<N;++i) 
+                r[i] = a[i] * o[i]; 
+            return r;        
+        }
+
+        constexpr vec cwiseDiv(const vec &o) const{
+            vec<N,T> r; 
+            for(int i=0;i<N;++i) 
+                r[i] = a[i] / o[i]; 
+            return r;        
+        }
+
         void debug_print(char ed='\n') const{
             printf("[vec<%d>](",N);
             for(int i=0;i<N;++i){
@@ -298,6 +312,7 @@ namespace vecmat{
             return std::sqrt(ret);
         }
         
+        // 计算行列式（目前仅支持size<=4的矩阵），因为浮点数精度问题，一些情况下会有较大误差（Eigen也会），40M测试点总误差与Eigen库相当，效率与Eigen相当
         constexpr T determinant() const{
             static_assert(N==M,"only available in square matrix");
             static_assert(std::is_floating_point<T>::value,"do not support nonfloating-point type");
@@ -311,14 +326,14 @@ namespace vecmat{
                        rows[1][0] * (rows[0][1] * rows[2][2] - rows[2][1] * rows[0][2]) +
                        rows[2][0] * (rows[0][1] * rows[1][2] - rows[1][1] * rows[0][2]); 
             } else {//N==4  from GLM
-                float SubFactor00 = rows[2][2] * rows[3][3] - rows[3][2] * rows[2][3];
-                float SubFactor01 = rows[2][1] * rows[3][3] - rows[3][1] * rows[2][3];
-                float SubFactor02 = rows[2][1] * rows[3][2] - rows[3][1] * rows[2][2];
-                float SubFactor03 = rows[2][0] * rows[3][3] - rows[3][0] * rows[2][3];
-                float SubFactor04 = rows[2][0] * rows[3][2] - rows[3][0] * rows[2][2];
-                float SubFactor05 = rows[2][0] * rows[3][1] - rows[3][0] * rows[2][1];
+                T SubFactor00 = rows[2][2] * rows[3][3] - rows[3][2] * rows[2][3];
+                T SubFactor01 = rows[2][1] * rows[3][3] - rows[3][1] * rows[2][3];
+                T SubFactor02 = rows[2][1] * rows[3][2] - rows[3][1] * rows[2][2];
+                T SubFactor03 = rows[2][0] * rows[3][3] - rows[3][0] * rows[2][3];
+                T SubFactor04 = rows[2][0] * rows[3][2] - rows[3][0] * rows[2][2];
+                T SubFactor05 = rows[2][0] * rows[3][1] - rows[3][0] * rows[2][1];
 
-                vec<4,float> DetCof(
+                vec<4,T> DetCof(
                     + (rows[1][1] * SubFactor00 - rows[1][2] * SubFactor01 + rows[1][3] * SubFactor02),
                     - (rows[1][0] * SubFactor00 - rows[1][2] * SubFactor03 + rows[1][3] * SubFactor04),
                     + (rows[1][0] * SubFactor01 - rows[1][1] * SubFactor03 + rows[1][3] * SubFactor05),
@@ -329,6 +344,114 @@ namespace vecmat{
                     rows[0][2] * DetCof[2] + rows[0][3] * DetCof[3];
             }
         }
+
+        // only used for err testing
+        // constexpr T det2()const{
+        //     long double SubFactor00 = (long double)rows[2][2] * rows[3][3] - (long double)rows[3][2] * rows[2][3];
+        //     long double SubFactor01 = (long double)rows[2][1] * rows[3][3] - (long double)rows[3][1] * rows[2][3];
+        //     long double SubFactor02 = (long double)rows[2][1] * rows[3][2] - (long double)rows[3][1] * rows[2][2];
+        //     long double SubFactor03 = (long double)rows[2][0] * rows[3][3] - (long double)rows[3][0] * rows[2][3];
+        //     long double SubFactor04 = (long double)rows[2][0] * rows[3][2] - (long double)rows[3][0] * rows[2][2];
+        //     long double SubFactor05 = (long double)rows[2][0] * rows[3][1] - (long double)rows[3][0] * rows[2][1];
+        //     vec<4,long double> DetCof(
+        //         + (rows[1][1] * SubFactor00 - rows[1][2] * SubFactor01 + rows[1][3] * SubFactor02),
+        //         - (rows[1][0] * SubFactor00 - rows[1][2] * SubFactor03 + rows[1][3] * SubFactor04),
+        //         + (rows[1][0] * SubFactor01 - rows[1][1] * SubFactor03 + rows[1][3] * SubFactor05),
+        //         - (rows[1][0] * SubFactor02 - rows[1][1] * SubFactor04 + rows[1][2] * SubFactor05));
+        //     return
+        //         rows[0][0] * DetCof[0] + rows[0][1] * DetCof[1] +
+        //         rows[0][2] * DetCof[2] + rows[0][3] * DetCof[3];
+        // }
+
+        // 计算逆矩阵，误差同，但4x4显著慢于Eigen，待优化
+        constexpr mat inverse() const{
+            static_assert(N==M,"only available in square matrix");
+            static_assert(std::is_floating_point<T>::value,"do not support nonfloating-point type");
+            static_assert(N>=1||N<=4,"do not support this size");            
+            if constexpr(N==1){
+                return mat<1,1,T>(vec<1,T>(static_cast<T>(1)/(rows[0][0])));
+            } else if constexpr(N==2){
+                T OneOverDeterminant = static_cast<T>(1) / (rows[0][0] * rows[1][1] - rows[1][0] * rows[0][1]);
+                return mat<2,2,T>(
+                        vec<2,T>(+rows[1][1] * OneOverDeterminant,
+                                 -rows[0][1] * OneOverDeterminant),
+                        vec<2,T>(-rows[1][0] * OneOverDeterminant,
+                                 +rows[0][0] * OneOverDeterminant)); 
+            } else if constexpr(N==3){ // from GLM
+                T OneOverDeterminant = static_cast<T>(1) / (
+                    + rows[0][0] * (rows[1][1] * rows[2][2] - rows[2][1] * rows[1][2])
+                    - rows[1][0] * (rows[0][1] * rows[2][2] - rows[2][1] * rows[0][2])
+                    + rows[2][0] * (rows[0][1] * rows[1][2] - rows[1][1] * rows[0][2]));
+
+                mat<3,3,T> Inverse;
+                Inverse[0][0] = + (rows[1][1] * rows[2][2] - rows[2][1] * rows[1][2]) * OneOverDeterminant;
+                Inverse[1][0] = - (rows[1][0] * rows[2][2] - rows[2][0] * rows[1][2]) * OneOverDeterminant;
+                Inverse[2][0] = + (rows[1][0] * rows[2][1] - rows[2][0] * rows[1][1]) * OneOverDeterminant;
+                Inverse[0][1] = - (rows[0][1] * rows[2][2] - rows[2][1] * rows[0][2]) * OneOverDeterminant;
+                Inverse[1][1] = + (rows[0][0] * rows[2][2] - rows[2][0] * rows[0][2]) * OneOverDeterminant;
+                Inverse[2][1] = - (rows[0][0] * rows[2][1] - rows[2][0] * rows[0][1]) * OneOverDeterminant;
+                Inverse[0][2] = + (rows[0][1] * rows[1][2] - rows[1][1] * rows[0][2]) * OneOverDeterminant;
+                Inverse[1][2] = - (rows[0][0] * rows[1][2] - rows[1][0] * rows[0][2]) * OneOverDeterminant;
+                Inverse[2][2] = + (rows[0][0] * rows[1][1] - rows[1][0] * rows[0][1]) * OneOverDeterminant;
+                
+                return Inverse;
+            } else {//N==4  from GLM
+                T Coef00 = rows[2][2] * rows[3][3] - rows[3][2] * rows[2][3];
+                T Coef02 = rows[1][2] * rows[3][3] - rows[3][2] * rows[1][3];
+                T Coef03 = rows[1][2] * rows[2][3] - rows[2][2] * rows[1][3];
+
+                T Coef04 = rows[2][1] * rows[3][3] - rows[3][1] * rows[2][3];
+                T Coef06 = rows[1][1] * rows[3][3] - rows[3][1] * rows[1][3];
+                T Coef07 = rows[1][1] * rows[2][3] - rows[2][1] * rows[1][3];
+
+                T Coef08 = rows[2][1] * rows[3][2] - rows[3][1] * rows[2][2];
+                T Coef10 = rows[1][1] * rows[3][2] - rows[3][1] * rows[1][2];
+                T Coef11 = rows[1][1] * rows[2][2] - rows[2][1] * rows[1][2];
+
+                T Coef12 = rows[2][0] * rows[3][3] - rows[3][0] * rows[2][3];
+                T Coef14 = rows[1][0] * rows[3][3] - rows[3][0] * rows[1][3];
+                T Coef15 = rows[1][0] * rows[2][3] - rows[2][0] * rows[1][3];
+
+                T Coef16 = rows[2][0] * rows[3][2] - rows[3][0] * rows[2][2];
+                T Coef18 = rows[1][0] * rows[3][2] - rows[3][0] * rows[1][2];
+                T Coef19 = rows[1][0] * rows[2][2] - rows[2][0] * rows[1][2];
+
+                T Coef20 = rows[2][0] * rows[3][1] - rows[3][0] * rows[2][1];
+                T Coef22 = rows[1][0] * rows[3][1] - rows[3][0] * rows[1][1];
+                T Coef23 = rows[1][0] * rows[2][1] - rows[2][0] * rows[1][1];
+
+                vec<4, T> Fac0(Coef00, Coef00, Coef02, Coef03);
+                vec<4, T> Fac1(Coef04, Coef04, Coef06, Coef07);
+                vec<4, T> Fac2(Coef08, Coef08, Coef10, Coef11);
+                vec<4, T> Fac3(Coef12, Coef12, Coef14, Coef15);
+                vec<4, T> Fac4(Coef16, Coef16, Coef18, Coef19);
+                vec<4, T> Fac5(Coef20, Coef20, Coef22, Coef23);
+
+                vec<4, T> Vec0(rows[1][0], rows[0][0], rows[0][0], rows[0][0]);
+                vec<4, T> Vec1(rows[1][1], rows[0][1], rows[0][1], rows[0][1]);
+                vec<4, T> Vec2(rows[1][2], rows[0][2], rows[0][2], rows[0][2]);
+                vec<4, T> Vec3(rows[1][3], rows[0][3], rows[0][3], rows[0][3]);
+
+                vec<4, T> Inv0(Vec1.cwiseMult(Fac0) - Vec2.cwiseMult(Fac1) + Vec3.cwiseMult(Fac2));
+                vec<4, T> Inv1(Vec0.cwiseMult(Fac0) - Vec2.cwiseMult(Fac3) + Vec3.cwiseMult(Fac4));
+                vec<4, T> Inv2(Vec0.cwiseMult(Fac1) - Vec1.cwiseMult(Fac3) + Vec3.cwiseMult(Fac5));
+                vec<4, T> Inv3(Vec0.cwiseMult(Fac2) - Vec1.cwiseMult(Fac4) + Vec2.cwiseMult(Fac5));
+
+                vec<4, T> SignA(+1, -1, +1, -1);
+                vec<4, T> SignB(-1, +1, -1, +1);
+                mat<4, 4, T> Inverse(Inv0.cwiseMult(SignA), Inv1.cwiseMult(SignB), Inv2.cwiseMult(SignA), Inv3.cwiseMult(SignB));
+
+                vec<4, T> Row0(Inverse[0][0], Inverse[1][0], Inverse[2][0], Inverse[3][0]);
+
+                vec<4, T> Dot0(rows[0].cwiseMult(Row0));
+                T Dot1 = (Dot0[0] + Dot0[1]) + (Dot0[2] + Dot0[3]);
+
+                T OneOverDeterminant = static_cast<T>(1) / Dot1;
+
+                return Inverse * OneOverDeterminant;                
+            }            
+        }
+
 
         void debug_print() const{
             printf("[mat<%d,%d>]\n",N,M);
