@@ -241,7 +241,7 @@ struct test_tmp{
     #define run_op(in1,in2,out,ti) \
         {ti=clock(); \
         for(int i=0;i<MAX_DATA_N;++i) \
-        out[i].vec=in1[i].vec.inverse(); \
+        out[i].vec=in1[i].vec *in2[i].vec; \
         ti=(clock()-ti)/CLOCKS_PER_SEC;}
     void check(){
         double err=0;
@@ -293,8 +293,13 @@ struct test_tmp{
 test_tmp<matei,matmy> dft;
 // test_tmp<matei,matmy> dft;
 
-// __attribute_noinline__ float noinlinewp(vecmat::mat<2,2,float> a){
-//     return a.determinant();
+// __attribute_noinline__ float noinlinewp(){
+//     vecmat::mat<3,3,float> b11(
+//         vecmat::vec3f(1,2,3),
+//         vecmat::vec3f(4,5,6),
+//         vecmat::vec3f(7,8,9)
+//     );
+//     return b1;
 // }
 
 int main(){
@@ -306,6 +311,11 @@ int main(){
     // int t=0;
     // cout<<((t+=1)+=1)<<endl;
 
+    // vecmat::mat22f a(1,2,3,4);
+    // vecmat::mat22f b(2,3,4,5);
+    // cout<<vecmat::inequal(a,b,2)<<endl;
+    // cout<<vecmat::distance(a,b)<<" "<<a.distance(b)<<endl;
+
     // int t=0;
     // cin>>t;
     // vecmat::mat<2,2,float> b11(
@@ -314,18 +324,16 @@ int main(){
     // );
     // cout<<noinlinewp(b11)<<endl;
 
-    // vecmat::mat<4,4,float> b1(
-    //     vecmat::vec4f(1,2,3,4),
-    //     vecmat::vec4f(5,6,0,0),
-    //     vecmat::vec4f(9,0,11,12),
-    //     vecmat::vec4f(13,14,0,16)
+    // vecmat::mat<2,2,float> b1(
+    //     1,2,3,4
     // );
     // // vecmat::mat33f b1(
     // //     vecmat::vec3f(1,2,5),
     // //     vecmat::vec3f(5,6,7),
     // //     vecmat::vec3f(9,10,11)   );
-
+    // vecmat::mat33f b1=vecmat::mat33f::diag(vecmat::vec3f::fill(3));
     // cout<<b1.determinant()<<endl;
+    // b1.debug_print();
     // b1.inverse().debug_print();
 
     // cout<<sizeof(vecmat::mat<3,3,float>)<<endl;

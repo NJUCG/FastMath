@@ -68,6 +68,11 @@ namespace vecmat{
             return std::sqrt(rt);
         }
 
+        //欧几里得距离
+        constexpr auto distance(const vec &b) const{
+            return (*this - b).len();
+        }
+
         constexpr T dot(const vec &o) const{
             T ret=0;
             for(int i=0;i<N;++i) ret+=a[i]*o[i];
@@ -126,19 +131,39 @@ namespace vecmat{
     VVASSIGN_OP_DEF_HELPER(-=)
     #undef VVASSIGN_OP_DEF_HELPER
 
-    //不考虑精度，严格相等，考虑精度请使用vecmat::equal(eps)
+    //不考虑精度，严格相等，考虑精度请使用vecmat::equal(a,b,eps)
     template<uint32_t N,typename T> 
     inline bool operator ==(const vec<N,T>& a, const vec<N,T>& o){
         for(int i=0;i<N;++i) 
             if(a[i] != o[i]) return false; 
         return true;
     } 
-    //不考虑精度，考虑精度请使用vecmat::inequal(eps)
+    //不考虑精度，考虑精度请使用vecmat::inequal(a,b,eps)
     template<uint32_t N,typename T> 
     inline bool operator !=(const vec<N,T>& a, const vec<N,T>& o){
         for(int i=0;i<N;++i) 
             if(a[i] != o[i]) return true; 
         return false;
+    } 
+
+    template<uint32_t N,typename T,typename T2> 
+    inline bool equal(const vec<N,T>& a, const vec<N,T>& o, T2 eps){
+        for(int i=0;i<N;++i) 
+            if(abs(a[i] - o[i])>eps) return false; 
+        return true;
+    } 
+
+    template<uint32_t N,typename T,typename T2> 
+    inline bool inequal(const vec<N,T>& a, const vec<N,T>& o, T2 eps){
+        for(int i=0;i<N;++i) 
+            if(abs(a[i] - o[i])>eps) return true; 
+        return false;
+    } 
+
+    //欧几里得距离
+    template<uint32_t N,typename T> 
+    inline auto distance(const vec<N,T>& a, const vec<N,T>& o){
+        return a.distance(o);
     } 
 
 
@@ -192,16 +217,16 @@ namespace vecmat{
                 m.rows[i][i]=x;
             }
             return m;
-        }   
-        static constexpr mat diag(std::initializer_list<T> li){
+        }    
+        static constexpr mat diag(const vec<N,T> &li){
             static_assert(N==M,"only available in square matrix");
             mat m; 
             for(int i=0;i<N;++i){ 
                 m.rows[i]=vec<M,T>::zero(); 
-                m.rows[i][i]=*(li.begin()+i);
+                m.rows[i][i]=li[i];
             }
             return m;
-        }           
+        }     
         static constexpr mat identity(){
             static_assert(N==M,"only available in square matrix");
             return scalar((T)1);
@@ -237,6 +262,28 @@ namespace vecmat{
             for(int i=0;i<N;++i)
                 rows[i]=*(li.begin()+i);
         }
+        mat(T t00){
+            static_assert(N==1&&M==1,"do not support initialize like this");
+            rows[0][0]=t00; 
+        }
+        mat(T t00,T t01,T t10,T t11){
+            static_assert(N==2&&M==2,"do not support initialize like this");
+            rows[0][0]=t00; rows[0][1]=t01; 
+            rows[1][0]=t10; rows[1][1]=t11; 
+        }
+        mat(T t00,T t01,T t02,T t10,T t11,T t12,T t20,T t21,T t22){
+            static_assert(N==3&&M==3,"do not support initialize like this");
+            rows[0][0]=t00; rows[0][1]=t01; rows[0][2]=t02; 
+            rows[1][0]=t10; rows[1][1]=t11; rows[1][2]=t12; 
+            rows[2][0]=t20; rows[2][1]=t21; rows[2][2]=t22; 
+        }
+        mat(T t00,T t01,T t02,T t03,T t10,T t11,T t12,T t13,T t20,T t21,T t22,T t23,T t30,T t31,T t32,T t33){
+            static_assert(N==4&&M==4,"do not support initialize like this");
+            rows[0][0]=t00; rows[0][1]=t01; rows[0][2]=t02; rows[0][3]=t03; 
+            rows[1][0]=t10; rows[1][1]=t11; rows[1][2]=t12; rows[1][3]=t13; 
+            rows[2][0]=t20; rows[2][1]=t21; rows[2][2]=t22; rows[2][3]=t23; 
+            rows[3][0]=t30; rows[3][1]=t31; rows[3][2]=t32; rows[3][3]=t33; 
+        }        
 
         constexpr mat<M,N,T> transpose() const{
             mat<M,N,T> m;
@@ -445,6 +492,19 @@ namespace vecmat{
             if(a[i] != o[i]) return true; 
         return false;
     } 
+    template<uint32_t N,uint32_t M,typename T,typename T2> 
+    inline bool equal(const mat<N,M,T>& a, const mat<N,M,T>& o, T2 eps){
+        for(int i=0;i<N;++i) 
+            if(inequal(a[i],o[i],eps)) return false; 
+        return true;
+    } 
+
+    template<uint32_t N,uint32_t M,typename T,typename T2> 
+    inline bool inequal(const mat<N,M,T>& a, const mat<N,M,T>& o, T2 eps){
+        for(int i=0;i<N;++i) 
+            if(inequal(a[i],o[i],eps)) return true; 
+        return false;
+    } 
 
     #define VSBINARY_OP_DEF_HELPER(op) \
     template<uint32_t N,uint32_t M,typename T> \
@@ -549,8 +609,14 @@ namespace vecmat{
     using vec##3##Tsym = vec<3, T>;     \
     using vec##4##Tsym = vec<4, T>;     \
     using mat##22##Tsym = mat<2, 2, T>;     \
+    using mat##23##Tsym = mat<2, 3, T>;     \
+    using mat##24##Tsym = mat<2, 4, T>;     \
+    using mat##32##Tsym = mat<3, 2, T>;     \
     using mat##33##Tsym = mat<3, 3, T>;     \
-    using mat##44##Tsym = mat<4, 4, T>;      
+    using mat##34##Tsym = mat<3, 4, T>;     \
+    using mat##42##Tsym = mat<4, 2, T>;     \
+    using mat##43##Tsym = mat<4, 3, T>;     \
+    using mat##44##Tsym = mat<4, 4, T>;    
 
     VECMAT_TYPEDEF_MAKER(float,f);
     VECMAT_TYPEDEF_MAKER(double,d);
